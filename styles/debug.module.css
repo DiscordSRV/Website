@@ -1,0 +1,91 @@
+@media only screen and (max-width: 800px) {
+    .container {
+        margin: 0 1rem 1rem 1rem;
+    }
+}
+@media only screen and (min-width: 799px) {
+    .container {
+        margin: 0 3rem 1rem 3rem;
+    }
+}
+
+.file {
+    border: #333 2px solid;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.fileHeader {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: #999 1px solid;
+}
+
+.fileControlBar {
+    align-self: flex-end;
+
+    display: flex;
+    gap: 3px;
+}
+
+.fileControl button, .fileControl select {
+    color: black;
+}
+
+.fileControl button {
+    width: 4rem;
+    padding: 2px;
+    border: 0.1rem #777 solid;
+    border-radius: 0.2rem;
+    background-color: #DDD;
+}
+
+.fileControl button:hover {
+    background-color: #BBB;
+}
+
+.fileName {
+    margin: 0 0 0 0.3rem;
+}
+
+.fileContentWrapper {
+    margin: 0.2rem 0 0 0.5rem;
+    transition: max-height 0.25s;
+}
+
+.fileContent {
+    overflow: auto;
+    padding-bottom: 0.3rem;
+}
+
+.plainTextWrapper {
+    display: grid;
+    grid-template-columns: min-content 1fr;
+}
+
+.lineNumbers pre {
+    color: #777;
+    text-align: right;
+    padding-right: 0.75rem;
+}
+
+.plainTextWrapper pre {
+    margin: 0;
+}
+
+.bigFile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.logControl {
+    margin-bottom: 0.5rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.logControl h3 {
+    margin: 0;
+}
