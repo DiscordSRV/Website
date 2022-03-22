@@ -30,7 +30,7 @@ function Page({ data, serverError }) {
         } catch (err) {
             setError(err);
         }
-    }, []);
+    }, [data]);
 
     if (error != null) {
         return <>
@@ -60,7 +60,7 @@ function Page({ data, serverError }) {
 
     return <>
         <Head>
-            <title>Debug report</title>
+            <title>DiscordSRV | Debug report</title>
             <meta name="viewport" content="width=400"/>
         </Head>
 
@@ -249,7 +249,7 @@ function File({ file, fileControl }) {
                     </div>
                 ) : (
                     <div className={styles.bigFile}>
-                        <p>This file is over 20,000 characters long.</p>
+                        <p>This file is {file.length.toLocaleString('en-US')} characters long. It wasn&apos;t loaded to prevent overloading your browser.</p>
                         <div className={styles.fileControl}>
                             <button onClick={() => {
                                 if (loading) {
