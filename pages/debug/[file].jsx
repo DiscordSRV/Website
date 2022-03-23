@@ -9,6 +9,7 @@ import 'highlight.js/styles/atom-one-dark.css'
 import Modal from "../../components/modal";
 
 const STORAGE_EXPANDED_BY_DEFAULT = "expandedByDefault";
+const STORAGE_TABLE_OF_CONTENTS_OPEN = "tableOfContentsOpen";
 
 function Page({ data, serverError }) {
     const [ decrypted, setDecrypted ] = useState(null);
@@ -163,11 +164,16 @@ function SettingsModal({ open, close }) {
 }
 
 function TableOfContents({ headings }) {
+    let control = {
+        expanded: window.localStorage.getItem(STORAGE_TABLE_OF_CONTENTS_OPEN) === "true",
+    };
+    control.notifyExpanded = () => window.localStorage.setItem(STORAGE_TABLE_OF_CONTENTS_OPEN, control.currentExpanded.toString())
+
     return (
         <File file={{
             name: "Table of contents",
             content: (<div className={styles.tableOfContents}>{headings}</div>)
-        }}/>
+        }} fileControl={control}/>
     )
 }
 
