@@ -114,9 +114,9 @@ function Page({ data, serverError }) {
         </Head>
 
         <div className={styles.container}>
-            <div style={{display: "flex", justifyContent: "space-between"}}>
+            <div className={styles.heading}>
                 <h1>Debug report</h1>
-                <div style={{alignSelf: "center"}} className={styles.fileControl}>
+                <div className={styles.fileControl} style={{alignSelf: "center"}}>
                     <button onClick={() => setAllExpanded(!allExpanded)} style={{width: "5rem"}}>{allExpanded ? "Collapse all" : "Expand all"}</button>
                 </div>
             </div>
@@ -152,6 +152,7 @@ function Logs({ id, logs, fileControl }) {
         setExpanded(fileControl.expanded);
     }, [fileControl.expanded]);
 
+    // Figure out what loggers & log levels are in the logs
     useEffect(() => {
         let contents = [];
         logs.forEach(log => contents.push(log.content));

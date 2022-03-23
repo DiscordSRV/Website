@@ -9,6 +9,11 @@
     }
 }
 
+.heading {
+    display: flex;
+    justify-content: space-between;
+}
+
 .tableOfContents {
     display: flex;
     flex-direction: column;
