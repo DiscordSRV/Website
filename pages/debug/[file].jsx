@@ -1,5 +1,4 @@
 import Head from 'next/head'
-import Link from 'next/link'
 import axios from 'axios'
 import {useEffect, useState} from 'react';
 import useCollapse from 'react-collapsed';
@@ -7,17 +6,32 @@ import * as aesjs from 'aes-js'
 import styles from '../../styles/debug.module.css'
 import hljs from 'highlight.js/lib/common'
 import 'highlight.js/styles/atom-one-dark.css'
+import Modal from "../../components/modal";
+
+const STORAGE_EXPANDED_BY_DEFAULT = "expandedByDefault";
 
 function Page({ data, serverError }) {
-    const [decrypted, setDecrypted] = useState(null);
-    const [error, setError] = useState(serverError);
-    const [allExpanded, setAllExpanded] = useState(true);
+    const [ decrypted, setDecrypted ] = useState(null);
+    const [ error, setError ] = useState(serverError);
+    const [ allExpanded, setAllExpanded ] = useState(true);
+    const [ settingsOpen, setSettingsOpen ] = useState(false);
+
+    useEffect(() => {
+        // Load settings from localstorage
+        let byDefault = window.localStorage.getItem(STORAGE_EXPANDED_BY_DEFAULT);
+        if (!byDefault) {
+            window.localStorage.setItem(STORAGE_EXPANDED_BY_DEFAULT, "true");
+            byDefault = "true";
+        }
+        setAllExpanded(byDefault === "true")
+    }, []);
 
     useEffect(() => {
         if (data == null) {
             return;
         }
 
+        // Load the initial file
         let key = window.location ? window.location.hash : null;
         if (key && key.startsWith('#')) {
             key = key.substring(1);
@@ -97,14 +111,22 @@ function Page({ data, serverError }) {
             return;
         } else if (logs.length !== 0) {
             let currentLocation = location + "#logs";
-            tableOfContents.push(<Link href={"#" + currentLocation} key={i - 1}>{"Debug Logs"}</Link>);
-            files.push(<Logs id={currentLocation} logs={logs} key={i - 1} fileControl={makeControl()}/>);
+            let control = makeControl();
+            tableOfContents.push(<a key={i - 1} onClick={() => {
+                control.expand(true)
+                setTimeout(() => window.location.hash = "#" + currentLocation, 50);
+            }}>Debug Logs</a>);
+            files.push(<Logs id={currentLocation} logs={logs} key={i - 1} fileControl={control}/>);
             logs = [];
         }
 
         let currentLocation = location + "#" + file.name;
-        tableOfContents.push(<Link href={"#" + currentLocation} key={i}>{file.name}</Link>);
-        files.push(<File id={currentLocation} file={file} key={i} lineNumbers={true} fileControl={makeControl()}/>);
+        let control = makeControl();
+        tableOfContents.push(<a key={i} onClick={() => {
+            control.expand(true)
+            setTimeout(() => window.location.hash = "#" + currentLocation, 50);
+        }}>{file.name}</a>);
+        files.push(<File id={currentLocation} file={file} key={i} lineNumbers={true} fileControl={control}/>);
     });
 
     return <>
@@ -116,22 +138,36 @@ function Page({ data, serverError }) {
         <div className={styles.container}>
             <div className={styles.heading}>
                 <h1>Debug report</h1>
-                <div className={styles.fileControl} style={{alignSelf: "center"}}>
+                <div className={`${styles.fileControl} ${styles.appControl}`}>
+                    <button onClick={() => setSettingsOpen(true)}>Settings</button>
                     <button onClick={() => setAllExpanded(!allExpanded)} style={{width: "5rem"}}>{allExpanded ? "Collapse all" : "Expand all"}</button>
                 </div>
             </div>
-            <TableOfContents headings={tableOfContents} fileControl={makeControl()}/>
+            <TableOfContents headings={tableOfContents}/>
             {files}
         </div>
+        <SettingsModal open={settingsOpen} close={() => setSettingsOpen(false)}/>
     </>
 }
 
-function TableOfContents({ headings, fileControl }) {
+function SettingsModal({ open, close }) {
+    let expandedByDefault = window.localStorage.getItem(STORAGE_EXPANDED_BY_DEFAULT) === "true";
+    return (
+        <Modal title="Settings" open={open} close={close}>
+            <label>
+                Expand files by default&nbsp;
+                <input type="checkbox" onChange={event => window.localStorage.setItem(STORAGE_EXPANDED_BY_DEFAULT, event.target.checked.toString())} defaultChecked={expandedByDefault}/>
+            </label>
+        </Modal>
+    )
+}
+
+function TableOfContents({ headings }) {
     return (
         <File file={{
             name: "Table of contents",
             content: (<div className={styles.tableOfContents}>{headings}</div>)
-        }} fileControl={fileControl}/>
+        }}/>
     )
 }
 
@@ -146,6 +182,7 @@ function Logs({ id, logs, fileControl }) {
 
     // Give fileControl our current expanded status
     fileControl.currentExpanded = isExpanded;
+    fileControl.expand = expanded => setExpanded(expanded);
 
     useEffect(() => {
         // Update expanded status based on fileControl's expanded status
@@ -264,6 +301,7 @@ function File({ id, file, fileControl, lineNumbers }) {
 
         // Give fileControl the current expanded status of this file
         fileControl.currentExpanded = isExpanded;
+        fileControl.expand = expanded => setExpanded(expanded);
     }
 
     // Update the expanded status if fileControl's expanded status changes

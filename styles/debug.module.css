@@ -14,6 +14,13 @@
     justify-content: space-between;
 }
 
+.appControl {
+    align-self: center;
+
+    display: flex;
+    gap: 0.1rem;
+}
+
 .tableOfContents {
     display: flex;
     flex-direction: column;
