@@ -138,7 +138,9 @@ function Page({ data, serverError }) {
 
         <div className={styles.container}>
             <div className={styles.heading}>
-                <h1>Debug report</h1>
+                <a href={"#" + location}>
+                    <h1>Debug report</h1>
+                </a>
                 <div className={`${styles.fileControl} ${styles.appControl}`}>
                     <button onClick={() => setSettingsOpen(true)}>Settings</button>
                     <button onClick={() => setAllExpanded(!allExpanded)} style={{width: "5rem"}}>{allExpanded ? "Collapse all" : "Expand all"}</button>
