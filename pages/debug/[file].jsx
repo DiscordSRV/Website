@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Link from 'next/link'
 import axios from 'axios'
 import {useEffect, useState} from 'react';
 import useCollapse from 'react-collapsed';
@@ -10,6 +11,7 @@ import 'highlight.js/styles/atom-one-dark.css'
 function Page({ data, serverError }) {
     const [decrypted, setDecrypted] = useState(null);
     const [error, setError] = useState(serverError);
+    const [allExpanded, setAllExpanded] = useState(true);
 
     useEffect(() => {
         if (data == null) {
@@ -19,6 +21,10 @@ function Page({ data, serverError }) {
         let key = window.location ? window.location.hash : null;
         if (key && key.startsWith('#')) {
             key = key.substring(1);
+        }
+        let indexOf = key.indexOf("#");
+        if (indexOf !== -1) {
+            key = key.substring(0, indexOf);
         }
         if (!key) {
             setError("Decryption key not specified");
@@ -32,6 +38,14 @@ function Page({ data, serverError }) {
         }
     }, [data]);
 
+    useEffect(() => {
+        // Changes the hash to itself after decryption so the browser jumps to the desired file
+        // It's not silly if it works.
+
+        // noinspection SillyAssignmentJS
+        window.location.hash = window.location.hash;
+    }, [decrypted]);
+
     if (error != null) {
         return <>
             <h1>Whoops, looks like something went wrong</h1>
@@ -44,6 +58,36 @@ function Page({ data, serverError }) {
         </>
     }
 
+    let location = window.location ? window.location.hash : "";
+    if (location.startsWith("#")) {
+        location = location.substring(1);
+    }
+    let lastIndex = location.lastIndexOf("#");
+    if (lastIndex !== -1) {
+        location = location.substring(0, lastIndex);
+    }
+
+    // Keep track of controls, so we can check if we need to change the "Collapse all" / "Show all" button based on
+    // all the files being in the opposite status
+    let fileControls = [];
+    function makeControl() {
+        let control = {expanded: allExpanded, notifyExpanded: () => {
+            let fail = true;
+            fileControls.forEach(control => {
+                if (control.currentExpanded === allExpanded) {
+                    fail = false;
+                }
+            });
+
+            if (fail) {
+                setAllExpanded(!allExpanded);
+            }
+        }};
+        fileControls.push(control);
+        return control;
+    }
+
+    let tableOfContents = [];
     let files = [];
     let logs = [];
     decrypted.forEach((file, i) => {
@@ -52,11 +96,16 @@ function Page({ data, serverError }) {
             logs.push(file);
             return;
         } else if (logs.length !== 0) {
-            files.push(<Logs logs={logs} key={i - 1}/>);
+            let currentLocation = location + "#logs";
+            tableOfContents.push(<Link href={"#" + currentLocation} key={i - 1}>{"Debug Logs"}</Link>);
+            files.push(<Logs id={currentLocation} logs={logs} key={i - 1} fileControl={makeControl()}/>);
             logs = [];
         }
-        files.push(<File file={file} key={i}/>);
-    })
+
+        let currentLocation = location + "#" + file.name;
+        tableOfContents.push(<Link href={"#" + currentLocation} key={i}>{file.name}</Link>);
+        files.push(<File id={currentLocation} file={file} key={i} lineNumbers={true} fileControl={makeControl()}/>);
+    });
 
     return <>
         <Head>
@@ -65,20 +114,43 @@ function Page({ data, serverError }) {
         </Head>
 
         <div className={styles.container}>
-            <h1>Debug report</h1>
+            <div style={{display: "flex", justifyContent: "space-between"}}>
+                <h1>Debug report</h1>
+                <div style={{alignSelf: "center"}} className={styles.fileControl}>
+                    <button onClick={() => setAllExpanded(!allExpanded)} style={{width: "5rem"}}>{allExpanded ? "Collapse all" : "Expand all"}</button>
+                </div>
+            </div>
+            <TableOfContents headings={tableOfContents} fileControl={makeControl()}/>
             {files}
         </div>
     </>
 }
 
+function TableOfContents({ headings, fileControl }) {
+    return (
+        <File file={{
+            name: "Table of contents",
+            content: (<div className={styles.tableOfContents}>{headings}</div>)
+        }} fileControl={fileControl}/>
+    )
+}
+
 const logPattern = /\[(\w*)] (?:\[(\w*)])?/;
 
-function Logs({ logs }) {
+function Logs({ id, logs, fileControl }) {
     const [ selected, setSelected ] = useState(0);
-    const [ expanded, setExpanded ] = useState(true);
+    const [ isExpanded, setExpanded ] = useState(true);
     const [ categories, setCategories ] = useState([]);
     const [ loadedContents, setLoadedContents ] = useState([]);
     const [ selectedCategory, setSelectedCategory ] = useState(null);
+
+    // Give fileControl our current expanded status
+    fileControl.currentExpanded = isExpanded;
+
+    useEffect(() => {
+        // Update expanded status based on fileControl's expanded status
+        setExpanded(fileControl.expanded);
+    }, [fileControl.expanded]);
 
     useEffect(() => {
         let contents = [];
@@ -111,7 +183,7 @@ function Logs({ logs }) {
 
     return (
         <>
-            <div className={`${styles.fileControl} ${styles.logControl}`}>
+            <div id={id} className={`${styles.fileControl} ${styles.logControl}`}>
                 <h3>Debug logs</h3>
                 {
                     logs.map((log, i) => {
@@ -143,8 +215,16 @@ function Logs({ logs }) {
                                     });
                                     return finalContent.substring(0, finalContent.length - 1);
                                 },
-                                setExpanded: expanded => setExpanded(expanded),
-                                expanded: expanded,
+                                setExpanded: expanded => {
+                                    setExpanded(expanded);
+
+                                    // Notify fileControl of the expanded status changing
+                                    if (fileControl && fileControl.notifyExpanded) {
+                                        fileControl.currentExpanded = !isExpanded;
+                                        fileControl.notifyExpanded();
+                                    }
+                                },
+                                expanded: isExpanded,
                                 childLoadedContent: content => {
                                     let contents = loadedContents;
                                     contents.push(content);
@@ -155,7 +235,7 @@ function Logs({ logs }) {
 
                         return (
                             <div key={i} style={{display: selected === i ? "block" : "none"}}>
-                                {<File file={log} fileControl={control}/>}
+                                {<File file={log} fileControl={control} lineNumbers={true}/>}
                             </div>
                         )
                     })
@@ -165,7 +245,7 @@ function Logs({ logs }) {
     )
 }
 
-function File({ file, fileControl }) {
+function File({ id, file, fileControl, lineNumbers }) {
     const { getCollapseProps, isExpanded, setExpanded } = useCollapse({defaultExpanded: true, duration: 300});
     const [ rendered, setRendered ] = useState(null);
     const [ highlight, setHighlight ] = useState(false);
@@ -175,24 +255,38 @@ function File({ file, fileControl }) {
     const [ error, setError ] = useState(null);
 
     let currentContent = content;
-    if (fileControl && currentContent && fileControl.contentEditor) {
-        currentContent = fileControl.contentEditor(currentContent);
+    if (fileControl) {
+        if (currentContent && fileControl.contentEditor) {
+            // Apply changes to content based on the fileControl's contentEditor function, if available
+            currentContent = fileControl.contentEditor(currentContent);
+        }
+
+        // Give fileControl the current expanded status of this file
+        fileControl.currentExpanded = isExpanded;
     }
 
+    // Update the expanded status if fileControl's expanded status changes
+    let expanded = fileControl ? fileControl.expanded : fileControl;
     useEffect(() => {
         if (fileControl && fileControl.expanded !== isExpanded) {
             setExpanded(fileControl.expanded);
         }
-    }, [fileControl]);
 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [expanded]);
+
+    // Render if highlighting is enabled
     useEffect(() => {
         if (highlight) {
             setRendered(hljs.highlightAuto(file.content).value);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [highlight]);
 
+    // File downloading logic
     useEffect(() => {
         if (!loading) {
+            // Prevent running during initial render
             return;
         }
         get(file.url).then(result => {
@@ -204,20 +298,35 @@ function File({ file, fileControl }) {
         }).catch(err => {
             setError(err.message);
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading]);
 
     return (
-        <div className={styles.file}>
+        <div id={id} className={styles.file}>
             <div className={styles.fileHeader}>
                 <h4 className={styles.fileName}>{file.name}</h4>
                 {
                     content != null ? (
-                        <div className={`${styles.fileControl} ${styles.fileControlBar}}`}>
+                        <div className={`${styles.fileControl} ${styles.fileControlBar}`}>
                             {
-                                file.name.endsWith(".txt") || file.name.endsWith(".log") ? null :
+                                file.name.indexOf(".") === -1 || file.name.endsWith(".txt") || file.name.endsWith(".log") ? null :
                                     <button onClick={() => setHighlight(!highlight)}>{highlight ? "Plain" : "Highlight"}</button>
                             }
-                            <button onClick={() => fileControl ? fileControl.setExpanded(!isExpanded) : setExpanded(!isExpanded)}>{isExpanded ? "Collapse" : "Show"}</button>
+                            <button onClick={() => {
+                                // Use either the fileControl's expanding function or this file's expanded state
+                                // based on if the fileControl has an expanding function or not
+                                if (fileControl && fileControl.setExpanded) {
+                                    fileControl.setExpanded(!isExpanded)
+                                } else {
+                                    setExpanded(!isExpanded)
+                                }
+
+                                // Notify fileControl of the expanded status changing
+                                if (fileControl && fileControl.notifyExpanded) {
+                                    fileControl.currentExpanded = !isExpanded;
+                                    fileControl.notifyExpanded();
+                                }
+                            }}>{isExpanded ? "Collapse" : "Expand"}</button>
                         </div>
                     ) : null
                 }
@@ -233,13 +342,17 @@ function File({ file, fileControl }) {
                                 highlight ?
                                     <div dangerouslySetInnerHTML={{__html: rendered != null ? rendered : "<div/>"}}/> :
                                     <div className={styles.plainTextWrapper}>
-                                        <div className={styles.lineNumbers}>
-                                            {
-                                                currentContent.split("\n").map((line, i) => {
-                                                    return <pre key={i}>{i + 1}</pre>
-                                                })
-                                            }
-                                        </div>
+                                        {
+                                            !lineNumbers ? null : (
+                                                <div className={styles.lineNumbers}>
+                                                    {
+                                                        currentContent.split("\n").map((line, i) => {
+                                                            return <pre key={i}>{i + 1}</pre>
+                                                        })
+                                                    }
+                                                </div>
+                                            )
+                                        }
                                         {
                                             <pre>{currentContent}</pre>
                                         }
@@ -304,6 +417,7 @@ async function get(url) {
     return data.files ? data.files[0].content : data
 }
 
+// noinspection JSUnusedGlobalSymbols
 export async function getServerSideProps(context) {
     try {
         const { file } = context.query
@@ -318,4 +432,5 @@ export async function getServerSideProps(context) {
     }
 }
 
+// noinspection JSUnusedGlobalSymbols
 export default Page

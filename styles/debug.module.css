@@ -9,6 +9,13 @@
     }
 }
 
+.tableOfContents {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin: 0.5rem;
+}
+
 .file {
     border: #333 2px solid;
     border-radius: 4px;
@@ -25,7 +32,7 @@
     align-self: flex-end;
 
     display: flex;
-    gap: 3px;
+    gap: 0.1rem;
 }
 
 .fileControl button, .fileControl select {
@@ -84,6 +91,7 @@
     margin-bottom: 0.5rem;
     display: flex;
     gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .logControl h3 {
