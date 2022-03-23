@@ -115,7 +115,7 @@ function Page({ data, serverError }) {
             let control = makeControl();
             tableOfContents.push(<a key={i - 1} onClick={() => {
                 control.expand(true)
-                setTimeout(() => window.location.hash = "#" + currentLocation, 500);
+                setTimeout(() => window.location.hash = "#" + currentLocation, control.currentExpanded ? 0 : 500);
             }}>Debug Logs</a>);
             files.push(<Logs id={currentLocation} logs={logs} key={i - 1} fileControl={control}/>);
             logs = [];
@@ -125,7 +125,7 @@ function Page({ data, serverError }) {
         let control = makeControl();
         tableOfContents.push(<a key={i} onClick={() => {
             control.expand(true)
-            setTimeout(() => window.location.hash = "#" + currentLocation, 500);
+            setTimeout(() => window.location.hash = "#" + currentLocation, control.currentExpanded ? 0 : 500);
         }}>{file.name}</a>);
         files.push(<File id={currentLocation} file={file} key={i} lineNumbers={true} fileControl={control}/>);
     });
