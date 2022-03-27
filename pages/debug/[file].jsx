@@ -8,23 +8,33 @@ import hljs from 'highlight.js/lib/common'
 import 'highlight.js/styles/atom-one-dark.css'
 import Modal from "../../components/modal";
 
+const LOCAL_STORAGE_KEY = "debug_options";
 const STORAGE_EXPANDED_BY_DEFAULT = "expandedByDefault";
 const STORAGE_TABLE_OF_CONTENTS_OPEN = "tableOfContentsOpen";
 
 function Page({ data, serverError }) {
-    const [ decrypted, setDecrypted ] = useState(null);
+    const [ decryptedData, setDecryptedData ] = useState(null);
     const [ error, setError ] = useState(serverError);
     const [ allExpanded, setAllExpanded ] = useState(true);
     const [ settingsOpen, setSettingsOpen ] = useState(false);
+    const [ settings, setSettings ] = useState(null);
+
+    function changeSettings(settings) {
+        setSettings(settings);
+        window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
+    }
 
     useEffect(() => {
-        // Load settings from localstorage
-        let byDefault = window.localStorage.getItem(STORAGE_EXPANDED_BY_DEFAULT);
-        if (!byDefault) {
-            window.localStorage.setItem(STORAGE_EXPANDED_BY_DEFAULT, "true");
-            byDefault = "true";
+        // Load options from localStorage
+        let value = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (!value) {
+            changeSettings({});
+            return;
         }
-        setAllExpanded(byDefault === "true")
+
+        let settings = JSON.parse(value);
+        setSettings(settings);
+        setAllExpanded(settings[STORAGE_EXPANDED_BY_DEFAULT] === true);
     }, []);
 
     useEffect(() => {
@@ -47,7 +57,7 @@ function Page({ data, serverError }) {
         }
 
         try {
-            setDecrypted(decrypt(data, key));
+            setDecryptedData(decrypt(data, key));
         } catch (err) {
             setError(err);
         }
@@ -59,7 +69,7 @@ function Page({ data, serverError }) {
 
         // noinspection SillyAssignmentJS
         window.location.hash = window.location.hash;
-    }, [decrypted]);
+    }, [decryptedData]);
 
     if (error != null) {
         return <>
@@ -67,7 +77,7 @@ function Page({ data, serverError }) {
             <p>{error.toString()}</p>
         </>
     }
-    if (decrypted == null) {
+    if (decryptedData == null) {
         return <>
             <h2>Loading...</h2>
         </>
@@ -105,7 +115,7 @@ function Page({ data, serverError }) {
     let tableOfContents = [];
     let files = [];
     let logs = [];
-    decrypted.forEach((file, i) => {
+    decryptedData.forEach((file, i) => {
         let name = file.name;
         if (name.startsWith("debug") && name.endsWith(".log")) {
             logs.push(file);
@@ -146,30 +156,36 @@ function Page({ data, serverError }) {
                     <button onClick={() => setAllExpanded(!allExpanded)} style={{width: "5rem"}}>{allExpanded ? "Collapse all" : "Expand all"}</button>
                 </div>
             </div>
-            <TableOfContents headings={tableOfContents}/>
+            <TableOfContents headings={tableOfContents} settings={settings} changeSettings={changeSettings}/>
             {files}
         </div>
-        <SettingsModal open={settingsOpen} close={() => setSettingsOpen(false)}/>
+        <SettingsModal open={settingsOpen} close={() => setSettingsOpen(false)} settings={settings} changeSettings={changeSettings}/>
     </>
 }
 
-function SettingsModal({ open, close }) {
-    let expandedByDefault = window.localStorage.getItem(STORAGE_EXPANDED_BY_DEFAULT) === "true";
+function SettingsModal({ open, close, settings, changeSettings }) {
+    let expandedByDefault = settings[STORAGE_EXPANDED_BY_DEFAULT] === true;
     return (
         <Modal title="Settings" open={open} close={close}>
             <label>
                 Expand files by default&nbsp;
-                <input type="checkbox" onChange={event => window.localStorage.setItem(STORAGE_EXPANDED_BY_DEFAULT, event.target.checked.toString())} defaultChecked={expandedByDefault}/>
+                <input type="checkbox" onChange={event => {
+                    settings[STORAGE_EXPANDED_BY_DEFAULT] = event.target.checked;
+                    changeSettings(settings);
+                }} defaultChecked={expandedByDefault}/>
             </label>
         </Modal>
     )
 }
 
-function TableOfContents({ headings }) {
+function TableOfContents({ headings, settings, changeSettings }) {
     let control = {
-        expanded: window.localStorage.getItem(STORAGE_TABLE_OF_CONTENTS_OPEN) === "true",
+        expanded: settings[STORAGE_TABLE_OF_CONTENTS_OPEN] === true
     };
-    control.notifyExpanded = () => window.localStorage.setItem(STORAGE_TABLE_OF_CONTENTS_OPEN, control.currentExpanded.toString())
+    control.notifyExpanded = () => {
+        settings[STORAGE_TABLE_OF_CONTENTS_OPEN] = control.currentExpanded;
+        changeSettings(settings);
+    }
 
     return (
         <File file={{
@@ -408,8 +424,8 @@ function File({ id, file, fileControl, lineNumbers }) {
         fileControl.currentExpanded = isExpanded;
         fileControl.expand = expanded => setExpanded(expanded);
     }
-    if (!currentLineNumbers && lineNumbers) {
-        currentLineNumbers = currentContent ? currentContent.split("\n").map((line, i) => i) : [];
+    if (!currentLineNumbers) {
+        currentLineNumbers = currentContent && lineNumbers ? currentContent.split("\n").map((line, i) => i) : [];
     }
 
     // Update the expanded status if fileControl's expanded status changes
@@ -528,8 +544,8 @@ function File({ id, file, fileControl, lineNumbers }) {
 function decrypt(data, decryptionKey) {
     decryptionKey = toArray(b64Decode(decryptionKey));
     const encrypted = toArray(b64Decode(data));
-    if (decryptionKey.length < 32 || decryptionKey.length % 16 !== 0) {
-        throw "Invalid length decryption key"
+    if (decryptionKey.length < 16 || decryptionKey.length % 16 !== 0) {
+        throw "Invalid length decryption key: " + decryptionKey.length
     }
 
     let iv = encrypted.subarray(0, 16);
