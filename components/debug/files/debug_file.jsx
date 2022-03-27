@@ -4,7 +4,7 @@ import styles from "../../../styles/debug.module.css";
 import {useEffect, useState} from "react";
 import {decrypt, getFromPaste} from "../../../util/debug";
 
-export default function File({ id, file, fileControl, lineNumbers }) {
+export default function File({ id, file, fileControl, lineNumbers, noText }) {
     const { getCollapseProps, isExpanded, setExpanded } = useCollapse({defaultExpanded: fileControl ? fileControl.expanded : true, duration: 300});
     const [ rendered, setRendered ] = useState(null);
     const [ highlight, setHighlight ] = useState(false);
@@ -107,7 +107,7 @@ export default function File({ id, file, fileControl, lineNumbers }) {
                             {
                                 highlight ?
                                     <div dangerouslySetInnerHTML={{__html: rendered != null ? rendered : "<div/>"}}/> :
-                                    <div className={styles.plainTextWrapper}>
+                                    <div className={noText ? null : styles.plainTextWrapper}>
                                         {
                                             !lineNumbers ? null : (
                                                 <div className={styles.lineNumbers}>
@@ -118,7 +118,7 @@ export default function File({ id, file, fileControl, lineNumbers }) {
                                             )
                                         }
                                         {
-                                            <pre>{currentContent}</pre>
+                                            noText ? <div>{currentContent}</div> : <pre>{currentContent}</pre>
                                         }
                                     </div>
                             }

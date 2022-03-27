@@ -1,3 +1,5 @@
+/* Page */
+
 @media only screen and (max-width: 800px) {
     .container {
         margin: 0 1rem 1rem 1rem;
@@ -8,6 +10,8 @@
         margin: 0 3rem 1rem 3rem;
     }
 }
+
+/* Heading + heading controls */
 
 .heading {
     display: flex;
@@ -21,6 +25,8 @@
     gap: 0.1rem;
 }
 
+/* Table of contents file */
+
 .tableOfContents {
     display: flex;
     flex-direction: column;
@@ -30,76 +36,7 @@
     font-size: 16px;
 }
 
-.file {
-    border: #333 2px solid;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-}
-
-.fileHeader {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: #999 1px solid;
-}
-
-.fileControlBar {
-    align-self: flex-end;
-
-    display: flex;
-    gap: 0.1rem;
-}
-
-.fileControl button, .fileControl select {
-    color: black;
-}
-
-.fileControl button {
-    width: 4rem;
-    padding: 2px;
-    border: 0.1rem #777 solid;
-    border-radius: 0.2rem;
-    background-color: #DDD;
-}
-
-.fileControl button:hover {
-    background-color: #BBB;
-}
-
-.fileName {
-    margin: 0 0 0 0.3rem;
-}
-
-.fileContentWrapper {
-    margin: 0.2rem 0 0 0.5rem;
-    transition: max-height 0.25s;
-}
-
-.fileContent {
-    overflow: auto;
-    padding-bottom: 0.3rem;
-}
-
-.plainTextWrapper {
-    display: grid;
-    grid-template-columns: min-content 1fr;
-}
-
-.lineNumbers pre {
-    color: #777;
-    text-align: right;
-    padding-right: 0.75rem;
-}
-
-.plainTextWrapper pre {
-    margin: 0;
-}
-
-.bigFile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 3rem;
-}
+/* Logs file */
 
 .logControl {
     margin-bottom: 0.5rem;
@@ -124,4 +61,135 @@
 .logFilters {
     display: flex;
     flex-direction: column;
+}
+
+/* Environment file */
+
+.environmentCardStack {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.environmentCard {
+    border: solid gray 1px;
+    border-radius: 3px;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 7.5rem;
+    max-width: 20rem;
+    align-items: center;
+}
+
+.environmentCard h4 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.environmentCard p {
+    /* uhm... yes... */
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+
+    overflow-wrap: anywhere;
+    text-align: center;
+    margin: 0.5rem 0 0;
+}
+
+.environmentError {
+    background-color: firebrick;
+}
+
+.environmentWarning {
+    background-color: #BB0;
+}
+
+.environmentOK {
+    background-color: mediumseagreen;
+}
+
+.environmentInfo {
+    background-color: gray;
+}
+
+/* File */
+
+.file {
+    border: #333 2px solid;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.fileHeader {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: #999 1px solid;
+}
+
+.fileControlBar {
+    align-self: flex-end;
+
+    display: flex;
+    gap: 0.1rem;
+}
+
+.fileName {
+    margin: 0 0 0 0.3rem;
+}
+
+.fileContentWrapper {
+    margin: 0.2rem 0 0 0.5rem;
+    transition: max-height 0.25s;
+}
+
+.fileContent {
+    overflow: auto;
+    padding-bottom: 0.3rem;
+}
+
+.plainTextWrapper pre {
+    margin: 0;
+}
+
+.plainTextWrapper {
+    display: grid;
+    grid-template-columns: min-content 1fr;
+}
+
+.lineNumbers pre {
+    color: #777;
+    text-align: right;
+    padding-right: 0.75rem;
+}
+
+.bigFile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+/* File control */
+
+.fileControl button, .fileControl select {
+    color: black;
+}
+
+.fileControl button {
+    width: 4rem;
+    padding: 2px;
+    border: 0.1rem #777 solid;
+    border-radius: 0.2rem;
+    background-color: #DDD;
+}
+
+.fileControl button:hover {
+    background-color: #BBB;
 }

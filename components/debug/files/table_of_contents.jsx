@@ -16,6 +16,6 @@ export default function TableOfContents({ headings, settings, changeSettings }) 
         <File file={{
             name: "Table of contents",
             content: (<div className={styles.tableOfContents}>{headings}</div>)
-        }} fileControl={control}/>
+        }} fileControl={control} noText={true}/>
     )
 }
