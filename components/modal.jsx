@@ -2,7 +2,7 @@ import styles from '../styles/modal.module.css'
 
 export default function Modal({ title, open, close, children }) {
     return (
-        <div style={{display: open ? "flex" : "none"}}>
+        <div style={{display: open ? "block" : "none"}}>
             <div className={styles.modal}>
                 <div className={styles.modalWrapper}>
                     <div className={styles.modalHeader}>
