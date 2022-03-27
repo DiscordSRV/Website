@@ -19,6 +19,7 @@ export default function Environment({ id, file, fileControl }) {
                     <StatusCard status={content.status} jdaStatus={content.jdaStatus}/>
                     <OnlineModeCard onlineMode={content.onlineMode}/>
                     <JavaCard javaVersion={content.javaVersion} javaVendor={content.javaVendor}/>
+                    <OSCard operatingSystem={content.operatingSystem}/>
                     <CPUCard cores={content.cores} docker={content.docker}/>
                     <MemoryCard free={content.freeMemory} total={content.totalMemory} max={content.maxMemory}/>
                     <DiskCard usable={content.usableSpace} total={content.totalSpace}/>
@@ -81,8 +82,12 @@ function JavaCard({ javaVersion, javaVendor }) {
     return <EnvironmentCard title="Java Version" content={javaVersion + "\n" + javaVendor} status={status}/>
 }
 
+function OSCard({ operatingSystem }) {
+    return <EnvironmentCard title="Operating system" content={operatingSystem} status={INFO}/>
+}
+
 function CPUCard({ cores, docker }) {
-    return <EnvironmentCard title="CPU Cores" content={cores + (docker ? " (Running in docker)" : "")} status={cores === 1 ? WARNING : OK}/>
+    return <EnvironmentCard title="CPU Cores" content={cores + (docker ? " (Running in docker)" : "")} status={cores === 1 ? WARNING : INFO}/>
 }
 
 const GIG = 1000000; // 1GB
