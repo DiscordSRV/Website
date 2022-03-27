@@ -179,14 +179,19 @@ function TableOfContents({ headings }) {
     )
 }
 
-const logPattern = /\[(\w*)] (?:\[(\w*)])?/;
+const LOG_LINE_PATTERN = /\[(\w*)] (?:\[(\w*)])?/;
+const UNCATEGORIZED = "Uncategorized";
 
 function Logs({ id, logs, fileControl }) {
     const [ selected, setSelected ] = useState(0);
-    const [ isExpanded, setExpanded ] = useState(true);
-    const [ categories, setCategories ] = useState([]);
+    const [ isExpanded, setExpanded ] = useState(fileControl.expanded);
     const [ loadedContents, setLoadedContents ] = useState([]);
-    const [ selectedCategory, setSelectedCategory ] = useState(null);
+
+    const [ modalOpen, setModalOpen ] = useState(false);
+    const [ availableCategories, setAvailableCategories ] = useState([]);
+    const [ availableLevels, setAvailableLevels ] = useState([]);
+    const [ selectedCategories, setSelectedCategories ] = useState(null);
+    const [ selectedLevels, setSelectedLevels ] = useState(null);
 
     // Give fileControl our current expanded status
     fileControl.currentExpanded = isExpanded;
@@ -204,7 +209,8 @@ function Logs({ id, logs, fileControl }) {
         loadedContents.forEach(content => contents.push(content));
 
         let levels = [];
-        let gatheredCategories = [];
+        let categories = [];
+        categories.push(UNCATEGORIZED);
 
         contents.forEach(content => {
             if (!content) {
@@ -212,19 +218,34 @@ function Logs({ id, logs, fileControl }) {
             }
 
             content.split("\n").forEach(line => {
-                let match = line.match(logPattern);
+                let match = line.match(LOG_LINE_PATTERN);
+                if (match == null) {
+                    return;
+                }
                 let level = match[1];
                 let category = match[2];
                 if (levels.indexOf(level) === -1) {
                     levels.push(level);
                 }
-                if (category && gatheredCategories.indexOf(category) === -1) {
-                    gatheredCategories.push(category);
+                if (category && categories.indexOf(category) === -1) {
+                    categories.push(category);
                 }
             })
         });
 
-        setCategories(gatheredCategories);
+        let usingAllCategories = categories.length === availableCategories.length;
+        let usingAllLevels = levels.length === availableLevels.length;
+
+        setAvailableCategories(categories);
+        setAvailableLevels(levels);
+        if (selectedCategories == null || usingAllCategories) {
+            setSelectedCategories([...categories]);
+        }
+        if (selectedLevels == null || usingAllLevels) {
+            setSelectedLevels([...levels]);
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [logs, loadedContents]);
 
     return (
@@ -236,12 +257,7 @@ function Logs({ id, logs, fileControl }) {
                         return <button key={i} onClick={() => setSelected(i)} style={{width: "5rem"}}>{i === selected ? (i + 1) + " (Current)" : (i + 1)}</button>
                     })
                 }
-                <select onChange={event => setSelectedCategory(event.target.value)} className={styles.fileControl}>
-                    <option value={null}>Uncategorized</option>
-                    {
-                        categories.map((cat, i) => <option key={i} value={cat}>{cat}</option>)
-                    }
-                </select>
+                <button onClick={() => setModalOpen(true)}>Filters</button>
             </div>
             <div>
                 {
@@ -251,15 +267,33 @@ function Logs({ id, logs, fileControl }) {
                             control = {
                                 contentEditor: content => {
                                     let finalContent = "";
-                                    content.split("\n").forEach(line => {
-                                        let match = line.match(logPattern);
+                                    let matches = false;
+                                    let lineNumbers = [];
+                                    content.split("\n").forEach((line, i) => {
+                                        let match = line.match(LOG_LINE_PATTERN);
+                                        if (match == null) {
+                                            // Stack traces, random newlines etc.
+                                            if (matches) {
+                                                finalContent += line + "\n";
+                                                lineNumbers.push(i);
+                                            }
+                                            return;
+                                        }
+
                                         let level = match[1];
                                         let category = match[2];
-                                        if ((!category && selectedCategory === null) || category === selectedCategory) {
+                                        matches = selectedCategories != null && selectedLevels != null
+                                            && selectedCategories.indexOf(category ? category : UNCATEGORIZED) !== -1
+                                            && selectedLevels.indexOf(level) !== -1;
+                                        if (matches) {
                                             finalContent += line + "\n";
+                                            lineNumbers.push(i);
                                         }
                                     });
-                                    return finalContent.substring(0, finalContent.length - 1);
+                                    return {
+                                        content: finalContent.substring(0, finalContent.length - 1),
+                                        lineNumbers
+                                    };
                                 },
                                 setExpanded: expanded => {
                                     setExpanded(expanded);
@@ -287,12 +321,72 @@ function Logs({ id, logs, fileControl }) {
                     })
                 }
             </div>
+            <LogModal
+                open={modalOpen} close={() => setModalOpen(false)}
+                availableCategories={availableCategories} availableLevels={availableLevels}
+                selectedCategories={selectedCategories} setSelectedCategories={categories => setSelectedCategories([...categories])}
+                selectedLevels={selectedLevels} setSelectedLevels={levels => setSelectedLevels([...levels])}
+            />
         </>
     )
 }
 
+function LogModal({ open, close, availableCategories, availableLevels, selectedCategories, setSelectedCategories, selectedLevels, setSelectedLevels }) {
+    return (
+        <Modal title="Log filters" open={open} close={close} selectedCategories={selectedCategories}>
+            <div className={styles.logFiltersWrapper}>
+                <div>
+                    <h3>Levels</h3>
+                    <FilterSelection available={availableLevels} selected={selectedLevels} setSelected={setSelectedLevels}/>
+                </div>
+                <div>
+                    <h3>Categories</h3>
+                    <FilterSelection available={availableCategories} selected={selectedCategories} setSelected={setSelectedCategories}/>
+                </div>
+            </div>
+        </Modal>
+    );
+}
+
+function FilterSelection({ available, selected, setSelected }) {
+    if (selected == null) {
+        return <></>
+    }
+    return (
+        <div className={styles.logFilters}>
+            <label>
+                <input type="checkbox" checked={selected.length === 0} onChange={() => setSelected([])}/>
+                None
+            </label>
+            <label>
+                <input type="checkbox" checked={available.length === selected.length} onChange={() => setSelected([...available])}/>
+                All
+            </label>
+            {
+                available.map((category, i) => {
+                    let checked = selected.indexOf(category) !== -1;
+                    return (
+                        <label key={i}>
+                            <input type="checkbox" checked={checked} onChange={() => {
+                                let current = selected;
+                                if (selected.indexOf(category) === -1) {
+                                    current.push(category);
+                                } else {
+                                    current.splice(current.indexOf(category), 1);
+                                }
+                                setSelected(current);
+                            }}/>
+                            {category}
+                        </label>
+                    )
+                })
+            }
+        </div>
+    )
+}
+
 function File({ id, file, fileControl, lineNumbers }) {
-    const { getCollapseProps, isExpanded, setExpanded } = useCollapse({defaultExpanded: true, duration: 300});
+    const { getCollapseProps, isExpanded, setExpanded } = useCollapse({defaultExpanded: fileControl ? fileControl.expanded : true, duration: 300});
     const [ rendered, setRendered ] = useState(null);
     const [ highlight, setHighlight ] = useState(false);
 
@@ -301,15 +395,21 @@ function File({ id, file, fileControl, lineNumbers }) {
     const [ error, setError ] = useState(null);
 
     let currentContent = content;
+    let currentLineNumbers = null;
     if (fileControl) {
         if (currentContent && fileControl.contentEditor) {
             // Apply changes to content based on the fileControl's contentEditor function, if available
-            currentContent = fileControl.contentEditor(currentContent);
+            let content = fileControl.contentEditor(currentContent);
+            currentContent = content.content;
+            currentLineNumbers = content.lineNumbers;
         }
 
         // Give fileControl the current expanded status of this file
         fileControl.currentExpanded = isExpanded;
         fileControl.expand = expanded => setExpanded(expanded);
+    }
+    if (!currentLineNumbers && lineNumbers) {
+        currentLineNumbers = currentContent ? currentContent.split("\n").map((line, i) => i) : [];
     }
 
     // Update the expanded status if fileControl's expanded status changes
@@ -393,9 +493,7 @@ function File({ id, file, fileControl, lineNumbers }) {
                                             !lineNumbers ? null : (
                                                 <div className={styles.lineNumbers}>
                                                     {
-                                                        currentContent.split("\n").map((line, i) => {
-                                                            return <pre key={i}>{i + 1}</pre>
-                                                        })
+                                                        currentLineNumbers.map((line, i) => <pre key={i}>{line + 1}</pre>)
                                                     }
                                                 </div>
                                             )

@@ -111,3 +111,17 @@
 .logControl h3 {
     margin: 0;
 }
+
+.logFiltersWrapper {
+    display: flex;
+    gap: 2rem;
+}
+
+.logFiltersWrapper h3 {
+    margin: 0 0 1rem 0;
+}
+
+.logFilters {
+    display: flex;
+    flex-direction: column;
+}
