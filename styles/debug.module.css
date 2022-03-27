@@ -34,6 +34,11 @@
     margin: 0.5rem;
     color: royalblue;
     font-size: 16px;
+    align-items: flex-start;
+}
+
+.tableOfContents a {
+    cursor: pointer;
 }
 
 /* Logs file */

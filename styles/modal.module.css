@@ -37,6 +37,7 @@
     border: none;
     background-color: inherit;
     font-size: 2rem;
+    cursor: pointer;
 }
 
 .modalContent {
