@@ -1,14 +1,12 @@
 import Head from 'next/head'
 import {useEffect, useState} from 'react';
 import styles from '../../styles/debug.module.css'
-import 'highlight.js/styles/atom-one-dark.css'
 import Logs from "../../components/debug/files/logs";
 import File from "../../components/debug/files/debug_file";
 import SettingsModal, {STORAGE_EXPANDED_BY_DEFAULT} from "../../components/debug/settings_modal";
 import TableOfContents from "../../components/debug/files/table_of_contents";
 import {decrypt, getFromPaste} from "../../util/debug";
 import Environment from "../../components/debug/files/environment";
-//import Environment from "../../components/debug/files/environment";
 
 const LOCAL_STORAGE_KEY = "debug_options";
 

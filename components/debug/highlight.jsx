@@ -1,4 +1,5 @@
 import hljs from "highlight.js/lib/common";
+import 'highlight.js/styles/atom-one-dark.css'
 import {useEffect, useState} from "react";
 
 export default function Highlight({content}) {
