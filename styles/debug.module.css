@@ -1,11 +1,11 @@
 /* Page */
 
-@media only screen and (max-width: 800px) {
+@media only screen and (max-width: 799px) {
     .container {
         margin: 0 1rem 1rem 1rem;
     }
 }
-@media only screen and (min-width: 799px) {
+@media only screen and (min-width: 800px) {
     .container {
         margin: 0 3rem 1rem 3rem;
     }
