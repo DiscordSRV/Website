@@ -1,12 +1,14 @@
 import useCollapse from "react-collapsed";
-import hljs from "highlight.js/lib/common";
 import styles from "../../../styles/debug.module.css";
 import {useEffect, useState} from "react";
 import {decrypt, getFromPaste} from "../../../util/debug";
+import dynamic from "next/dynamic";
+
+// Only load in highlight.js if we're going to highlight something
+const Highlight = dynamic(() => import("../../debug/highlight"), { ssr: false });
 
 export default function File({ id, file, fileControl, lineNumbers, noText }) {
     const { getCollapseProps, isExpanded, setExpanded } = useCollapse({defaultExpanded: fileControl ? fileControl.expanded : true, duration: 300});
-    const [ rendered, setRendered ] = useState(null);
     const [ highlight, setHighlight ] = useState(false);
 
     const [ content, setContent ] = useState(file.content);
@@ -40,14 +42,6 @@ export default function File({ id, file, fileControl, lineNumbers, noText }) {
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [expanded]);
-
-    // Render if highlighting is enabled
-    useEffect(() => {
-        if (highlight) {
-            setRendered(hljs.highlightAuto(file.content).value);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [highlight]);
 
     // File downloading logic
     useEffect(() => {
@@ -106,7 +100,7 @@ export default function File({ id, file, fileControl, lineNumbers, noText }) {
                         <div className={styles.fileContent}>
                             {
                                 highlight ?
-                                    <div dangerouslySetInnerHTML={{__html: rendered != null ? rendered : "<div/>"}}/> :
+                                    <Highlight content={file.content}/> :
                                     <div className={noText ? null : styles.plainTextWrapper}>
                                         {
                                             !lineNumbers ? null : (
