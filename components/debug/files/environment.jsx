@@ -1,5 +1,8 @@
 import File from "./debug_file";
 import styles from "../../../styles/debug.module.css";
+import {useEffect, useState} from "react";
+import Modal from "../../modal";
+import axios from "axios";
 
 const ERROR = "error";
 const WARNING = "warning";
@@ -15,11 +18,11 @@ export default function Environment({ id, file, fileControl }) {
             content: (
                 <div className={styles.environmentCardStack}>
                     <DiscordSRVCard discordSRV={content.discordSRV}/>
-                    <VersionCard version={content.version} gitRevision={content.gitRevision} gitBranch={content.gitBranch}/>
+                    <VersionCard version={content.version} gitRevision={content.gitRevision} gitBranch={content.gitBranch} buildTime={content.buildTime}/>
                     <StatusCard status={content.status} jdaStatus={content.jdaStatus}/>
-                    <OnlineModeCard onlineMode={content.onlineMode}/>
+                    <OnlineModeCard onlineMode={content.onlineMode} offlineModeUuid={content.offlineModeUuid}/>
                     <JavaCard javaVersion={content.javaVersion} javaVendor={content.javaVendor}/>
-                    <OSCard operatingSystem={content.operatingSystem}/>
+                    <OSCard operatingSystem={content.operatingSystem} operatingSystemVersion={content.operatingSystemVersion}/>
                     <CPUCard cores={content.cores} docker={content.docker}/>
                     <MemoryCard free={content.freeMemory} total={content.totalMemory} max={content.maxMemory}/>
                     <DiskCard usable={content.usableSpace} total={content.totalSpace}/>
@@ -39,22 +42,71 @@ function DiscordSRVCard({ discordSRV }) {
     }
     let platform = known[discordSRV];
     if (platform) {
-        return <EnvironmentCard title="Platform" content={platform + "\n(Official)"} status={OK}/>
+        return <EnvironmentCard title="Platform" content={platform} status={OK}/>
     } else {
         return <EnvironmentCard title="Platform" content={discordSRV + "\n(Unofficial)"} status={ERROR}/>
     }
 }
 
-function VersionCard({ version, gitRevision, gitBranch }) {
-    return <EnvironmentCard title="Version" content={version + " (" + gitBranch + ")\n" + gitRevision} status={INFO}/>
+function VersionCard({ version, gitRevision, gitBranch, buildTime }) {
+    let [versionCheck, setVersionCheck] = useState({});
+
+    useEffect(() => {
+        let snapshot = version.endsWith("-SNAPSHOT");
+        axios.get("https://download.discordsrv.com/v2/DiscordSRV/DiscordSRV/" + (snapshot ? "snapshot" : "release") + "/version-check/" + (snapshot ? gitRevision : version))
+            .then(res => setVersionCheck(res.data))
+            .catch(err => console.log("Failed to check version status", err));
+    }, [gitRevision, version]);
+
+    let status = INFO;
+    if (versionCheck && versionCheck.status) {
+        if (versionCheck.insecure) {
+            status = ERROR;
+        } else if (versionCheck.status === "UP_TO_DATE") {
+            status = OK;
+        } else if (versionCheck.status === "OUTDATED") {
+            status = WARNING;
+        } else {
+            // Unknown
+            status = WARNING;
+        }
+    }
+
+    return <EnvironmentCard title="Version" content={version + " (" + gitBranch + ")"} status={status}>
+        <p>Rev: {gitRevision}</p>
+        <p>Build Time: {buildTime}</p>
+        <hr/>
+        <h3>Version check status</h3>
+        <p>{versionCheck.status}</p>
+        {versionCheck.amount > -1 ? <p>Behind by {versionCheck.amount} {versionCheck.amountType}</p> : <></>}
+        {versionCheck.insecure ? <p style={{fontWeight: "bold"}}>This version is insecure!</p> : <></>}
+        {versionCheck.securityIssues && versionCheck.securityIssues.length !== 0 ? <>
+            <p>Security issues</p>
+            <ul>
+                {
+                    versionCheck.securityIssues.map((issue, i) => <li key={i}>{issue}</li>)
+                }
+            </ul>
+        </> : <></>}
+    </EnvironmentCard>
 }
 
 function StatusCard({ status, jdaStatus }) {
-    return <EnvironmentCard title="Status" content={status + "\n(JDA: " + jdaStatus + ")"} status={status === "CONNECTED" ? OK : WARNING}/>
+    return <EnvironmentCard title="Status" content={status} status={status === "CONNECTED" ? OK : WARNING}>
+        <p>JDA: {jdaStatus}</p>
+    </EnvironmentCard>
 }
 
-function OnlineModeCard({ onlineMode }) {
-    return <EnvironmentCard title="Online Mode" content={onlineMode} status={onlineMode === "OFFLINE" ? ERROR : OK}/>
+function OnlineModeCard({ onlineMode, offlineModeUuid }) {
+    let isUuid = offlineModeUuid === true;
+    return <EnvironmentCard title="Online Mode"
+                            content={onlineMode}
+                            status={onlineMode === "OFFLINE" ? ERROR : (isUuid ? WARNING : OK)}>
+        {onlineMode !== "OFFLINE" && isUuid ? (<>
+            <p>A player with a version 3 UUID has logged into this server.</p>
+            <p>This likely means the proxy is in offline mode or ip forwarding is not configured</p>
+        </>) : <></>}
+    </EnvironmentCard>
 }
 
 function JavaCard({ javaVersion, javaVendor }) {
@@ -79,11 +131,15 @@ function JavaCard({ javaVersion, javaVendor }) {
         console.log("Failed to parse java version", error);
     }
 
-    return <EnvironmentCard title="Java Version" content={javaVersion + "\n" + javaVendor} status={status}/>
+    return <EnvironmentCard title="Java Version" content={javaVersion} status={status}>
+        <p>{javaVendor}</p>
+    </EnvironmentCard>
 }
 
-function OSCard({ operatingSystem }) {
-    return <EnvironmentCard title="Operating system" content={operatingSystem} status={INFO}/>
+function OSCard({ operatingSystem, operatingSystemVersion }) {
+    return <EnvironmentCard title="Operating system" content={operatingSystem} status={INFO}>
+        <p>{operatingSystemVersion}</p>
+    </EnvironmentCard>
 }
 
 function CPUCard({ cores, docker }) {
@@ -135,13 +191,30 @@ function LoggerCard({ platformLogger }) {
     return <EnvironmentCard title="Logger" content={platformLogger} status={INFO}/>
 }
 
-function EnvironmentCard({ title, content, status }) {
+function EnvironmentCard({ title, content, status, children }) {
     let statusClass = getStatusClass(status);
+    let [modalOpen, setModalOpen] = useState(false);
 
     return (
-        <div className={`${styles.environmentCard} ${statusClass}`}>
-            <h4>{title}</h4>
-            <p>{content}</p>
+        <div>
+            <div
+                className={`${styles.environmentCard} ${statusClass} ${children ? styles.pointer : ""}`}
+                onClick={() => {
+                    if (children) {
+                        setModalOpen(!modalOpen);
+                    }
+                }}
+            >
+                <h4>{title}</h4>
+                <p>{content}{children ? <span style={{fontWeight: "bold"}}>*</span> : <></>}</p>
+            </div>
+
+            {children ? (
+                <Modal title={title} open={modalOpen} close={() => setModalOpen(false)}>
+                    <p>{content}</p>
+                    {children}
+                </Modal>
+            ) : <></>}
         </div>
     )
 }
