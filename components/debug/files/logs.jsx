@@ -1,15 +1,20 @@
 import styles from "../../../styles/debug.module.css";
 import Modal from "../../modal";
 import {useEffect, useState} from "react";
-import File from "./debug_file";
+import {FileDisplay} from "./debug_file";
 
 const LOG_LINE_PATTERN = /\[(\w*)] (?:\[(\w*)])?/;
 const UNCATEGORIZED = "Uncategorized";
 
 function Logs({ id, logs, fileControl }) {
+    const [ debugLogs, setDebugLogs ] = useState([]);
     const [ selected, setSelected ] = useState(0);
-    const [ isExpanded, setExpanded ] = useState(fileControl.expanded);
-    const [ loadedContents, setLoadedContents ] = useState([]);
+
+    const [ expanded, setExpanded ] = useState(fileControl.defaultExpanded);
+    if (fileControl) {
+        fileControl.isExpanded = () => expanded;
+        fileControl.setExpanded = expanded => setExpanded(expanded)
+    }
 
     const [ modalOpen, setModalOpen ] = useState(false);
     const [ availableCategories, setAvailableCategories ] = useState([]);
@@ -17,26 +22,83 @@ function Logs({ id, logs, fileControl }) {
     const [ selectedCategories, setSelectedCategories ] = useState(null);
     const [ selectedLevels, setSelectedLevels ] = useState(null);
 
-    // Give fileControl our current expanded status
-    fileControl.currentExpanded = isExpanded;
-    fileControl.expand = expanded => setExpanded(expanded);
+    function filterContent(content) {
+        if (!content) {
+            return {};
+        }
+
+        let finalContent = "";
+        let matches = false;
+        let lineNumbers = [];
+        content.split("\n").forEach((line, i) => {
+            let match = line.match(LOG_LINE_PATTERN);
+            if (match == null) {
+                // Stack traces, random newlines etc.
+                if (matches) {
+                    finalContent += line + "\n";
+                    lineNumbers.push(i + 1);
+                }
+                return;
+            }
+
+            let level = match[1];
+            let category = match[2];
+            matches = selectedCategories != null && selectedLevels != null
+                && selectedCategories.indexOf(category ? category : UNCATEGORIZED) !== -1
+                && selectedLevels.indexOf(level) !== -1;
+            if (matches) {
+                finalContent += line + "\n";
+                lineNumbers.push(i + 1);
+            }
+        });
+        return {
+            content: finalContent.substring(0, finalContent.length - 1),
+            lineNumbers
+        };
+    }
 
     useEffect(() => {
-        // Update expanded status based on fileControl's expanded status
-        setExpanded(fileControl.expanded);
-    }, [fileControl.expanded]);
+        if (debugLogs == null || selected == null) {
+            return;
+        }
+        debugLogs[selected]?.control.setExpanded(expanded);
+    }, [debugLogs, selected, expanded])
+
+    useEffect(() => {
+        if (logs == null) {
+            return;
+        }
+
+        let debugLogs = [];
+        logs.forEach(file => {
+            let log = {
+                file: file,
+                content: file.content,
+                control: {
+                    defaultExpanded: expanded,
+                    setExpandedParent: expanded => fileControl.setExpandedParent(expanded)
+                }
+            };
+
+            debugLogs.push(log);
+        });
+
+        setDebugLogs(debugLogs);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [logs]);
 
     // Figure out what loggers & log levels are in the logs
     useEffect(() => {
-        let contents = [];
-        logs.forEach(log => contents.push(log.content));
-        loadedContents.forEach(content => contents.push(content));
+        let usingAllCategories = selectedCategories?.length === availableCategories?.length;
+        let usingAllLevels = selectedLevels?.length === availableLevels?.length;
 
         let levels = [];
         let categories = [];
         categories.push(UNCATEGORIZED);
 
-        contents.forEach(content => {
+        debugLogs.forEach(log => {
+            let content = log.content;
             if (!content) {
                 return;
             }
@@ -57,9 +119,6 @@ function Logs({ id, logs, fileControl }) {
             })
         });
 
-        let usingAllCategories = categories.length === availableCategories.length;
-        let usingAllLevels = levels.length === availableLevels.length;
-
         setAvailableCategories(categories);
         setAvailableLevels(levels);
         if (selectedCategories == null || usingAllCategories) {
@@ -70,7 +129,7 @@ function Logs({ id, logs, fileControl }) {
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [logs, loadedContents]);
+    }, [debugLogs]);
 
     return (
         <>
@@ -84,66 +143,21 @@ function Logs({ id, logs, fileControl }) {
                 <button onClick={() => setModalOpen(true)}>Filters</button>
             </div>
             <div>
-                {
-                    logs.map((log, i) => {
-                        let control = null
-                        if (i === selected) {
-                            control = {
-                                contentEditor: content => {
-                                    let finalContent = "";
-                                    let matches = false;
-                                    let lineNumbers = [];
-                                    content.split("\n").forEach((line, i) => {
-                                        let match = line.match(LOG_LINE_PATTERN);
-                                        if (match == null) {
-                                            // Stack traces, random newlines etc.
-                                            if (matches) {
-                                                finalContent += line + "\n";
-                                                lineNumbers.push(i);
-                                            }
-                                            return;
-                                        }
-
-                                        let level = match[1];
-                                        let category = match[2];
-                                        matches = selectedCategories != null && selectedLevels != null
-                                            && selectedCategories.indexOf(category ? category : UNCATEGORIZED) !== -1
-                                            && selectedLevels.indexOf(level) !== -1;
-                                        if (matches) {
-                                            finalContent += line + "\n";
-                                            lineNumbers.push(i);
-                                        }
-                                    });
-                                    return {
-                                        content: finalContent.substring(0, finalContent.length - 1),
-                                        lineNumbers
-                                    };
-                                },
-                                setExpanded: expanded => {
-                                    setExpanded(expanded);
-
-                                    // Notify fileControl of the expanded status changing
-                                    if (fileControl && fileControl.notifyExpanded) {
-                                        fileControl.currentExpanded = !isExpanded;
-                                        fileControl.notifyExpanded();
+                {debugLogs.map((log, i) => {
+                    let filtered = filterContent(log.content);
+                    return (
+                        <div key={i} style={{display: selected === i ? "block" : "none"}}>
+                            <FileDisplay file={log.file} fileControl={log.control} lineNumbers={filtered.lineNumbers} content={filtered.content} setContent={(content) => {
+                                setDebugLogs(debugLogs.map((log, i2) => {
+                                    if (i === i2) {
+                                        log.content = content;
                                     }
-                                },
-                                expanded: isExpanded,
-                                childLoadedContent: content => {
-                                    let contents = loadedContents;
-                                    contents.push(content);
-                                    setLoadedContents(contents);
-                                }
-                            }
-                        }
-
-                        return (
-                            <div key={i} style={{display: selected === i ? "block" : "none"}}>
-                                {<File file={log} fileControl={control} lineNumbers={true}/>}
-                            </div>
-                        )
-                    })
-                }
+                                    return log;
+                                }));
+                            }}/>
+                        </div>
+                    )
+                })}
             </div>
             <LogModal
                 open={modalOpen} close={() => setModalOpen(false)}

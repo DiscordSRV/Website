@@ -1,4 +1,4 @@
-import File from "./debug_file";
+import {FileDisplay} from "./debug_file";
 import styles from "../../../styles/debug.module.css";
 import {useEffect, useState} from "react";
 import Modal from "../../modal";
@@ -13,9 +13,7 @@ export default function Environment({ id, file, fileControl }) {
     const content = JSON.parse(file.content);
 
     return (
-        <File id={id} file={{
-            name: "Environment",
-            content: (
+        <FileDisplay id={id} fileControl={fileControl} nonText={true} file={{name: "Environment"}} content={((
                 <div className={styles.environmentCardStack}>
                     <DiscordSRVCard discordSRV={content.discordSRV}/>
                     <VersionCard version={content.version} gitRevision={content.gitRevision} gitBranch={content.gitBranch} buildTime={content.buildTime}/>
@@ -29,7 +27,7 @@ export default function Environment({ id, file, fileControl }) {
                     <LoggerCard platformLogger={content.platformLogger}/>
                 </div>
             )
-        }} fileControl={fileControl} noText={true}/>
+        )}/>
     )
 }
 
@@ -149,10 +147,13 @@ function CPUCard({ cores, docker }) {
 const GIG = 1000000; // 1GB
 function MemoryCard({ free, total, max }) {
     return <EnvironmentCard title="Memory" content={
-        prettifyBytes(free) + " Free\n" +
-        prettifyBytes(total) + " Total\n" +
         (max > 0 ? prettifyBytes(max) : "Unlimited") + " Max"
-    } status={max > 0 && max < GIG ? WARNING : INFO}/>
+    } status={max > 0 && max < GIG ? WARNING : INFO}>
+        <div style={{display: "flex", flexDirection: "column"}}>
+            <span>{prettifyBytes(free) + " Free"}</span>
+            <span>{prettifyBytes(total) + " Total"}</span>
+        </div>
+    </EnvironmentCard>
 }
 
 function DiskCard({ usable, total }) {

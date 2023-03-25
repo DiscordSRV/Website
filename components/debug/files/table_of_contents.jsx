@@ -1,21 +1,23 @@
 import styles from "../../../styles/debug.module.css";
-import File from "./debug_file";
+import {FileDisplay} from "./debug_file";
+import {useEffect, useState} from "react";
 
 const STORAGE_TABLE_OF_CONTENTS_OPEN = "tableOfContentsOpen";
 
 export default function TableOfContents({ headings, settings, changeSettings }) {
-    let control = {
-        expanded: settings[STORAGE_TABLE_OF_CONTENTS_OPEN] === true
-    };
-    control.notifyExpanded = () => {
-        settings[STORAGE_TABLE_OF_CONTENTS_OPEN] = control.currentExpanded;
+    const [control] = useState({ defaultExpanded: false });
+    control.setExpandedParent = expanded => {
+        control.setExpanded(expanded);
+
+        settings[STORAGE_TABLE_OF_CONTENTS_OPEN] = expanded;
         changeSettings(settings);
-    }
+    };
+
+    useEffect(() => {
+        control.setExpanded(settings[STORAGE_TABLE_OF_CONTENTS_OPEN] === true);
+    }, [control, settings]);
 
     return (
-        <File file={{
-            name: "Table of contents",
-            content: (<div className={styles.tableOfContents}>{headings}</div>)
-        }} fileControl={control} noText={true}/>
+        <FileDisplay file={{name: "Table of contents"}} fileControl={control} nonText={true} content={<div className={styles.tableOfContents}>{headings}</div>}/>
     )
 }

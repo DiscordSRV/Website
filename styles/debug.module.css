@@ -130,6 +130,26 @@
     background-color: gray;
 }
 
+/* Plugins file */
+.pluginsTable {
+    display: table;
+}
+.pluginsTable > * {
+    display: table-row;
+}
+.pluginsTable > * > * {
+    display: table-cell;
+    border: 1px solid #DDD;
+    padding: 0.5rem;
+    white-space: nowrap;
+}
+.pluginsTable button {
+    color: black;
+    background-color: #BBB;
+    border: 1px solid black;
+    border-radius: 2px;
+}
+
 /* File */
 
 .file {

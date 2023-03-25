@@ -7,15 +7,23 @@ import SettingsModal, {STORAGE_EXPANDED_BY_DEFAULT} from "../../components/debug
 import TableOfContents from "../../components/debug/files/table_of_contents";
 import {decrypt, getFromPaste} from "../../util/debug";
 import Environment from "../../components/debug/files/environment";
+import Plugins from "../../components/debug/files/plugins";
 
 const LOCAL_STORAGE_KEY = "debug_options";
 
 function Page({ data, serverError }) {
     const [ decryptedData, setDecryptedData ] = useState(null);
     const [ error, setError ] = useState(serverError);
+
     const [ allExpanded, setAllExpanded ] = useState(true);
+
     const [ settingsOpen, setSettingsOpen ] = useState(false);
     const [ settings, setSettings ] = useState(null);
+
+    const [ hash, setHash ] = useState(null);
+    const [ location, setLocation ] = useState(null);
+
+    const [ debugFiles, setFiles ] = useState([]);
 
     function changeSettings(settings) {
         setSettings(settings);
@@ -36,19 +44,26 @@ function Page({ data, serverError }) {
     }, []);
 
     useEffect(() => {
-        if (data == null) {
+        let location = window.location ? window.location.hash : "";
+        if (location.startsWith("#")) {
+            location = location.substring(1);
+        }
+        let lastIndex = location.lastIndexOf("#");
+        if (lastIndex !== -1) {
+            setLocation(location.substring(lastIndex + 1));
+            location = location.substring(0, lastIndex);
+        }
+        setHash(location);
+    }, []);
+
+    // Decrypt data
+    useEffect(() => {
+        if (data == null || hash == null) {
             return;
         }
 
         // Load the initial file
-        let key = window.location ? window.location.hash : null;
-        if (key && key.startsWith('#')) {
-            key = key.substring(1);
-        }
-        let indexOf = key.indexOf("#");
-        if (indexOf !== -1) {
-            key = key.substring(0, indexOf);
-        }
+        let key = hash;
         if (!key) {
             setError("Decryption key not specified");
             return;
@@ -59,7 +74,90 @@ function Page({ data, serverError }) {
         } catch (err) {
             setError(err);
         }
-    }, [data]);
+    }, [data, hash]);
+
+    useEffect(() => {
+        if (decryptedData == null) {
+            return;
+        }
+
+        let files = [];
+
+        function create(name, jsx) {
+            let id = hash + "#" + name.toLowerCase();
+            let key = files.length;
+
+            let control = {
+                defaultExpanded: allExpanded || name.toLowerCase() === location
+            };
+
+            let tableOfContents = (
+                <a key={key} onClick={() => {
+                    control.setExpanded(true);
+                    setTimeout(() => window.location.hash = "#" + id, control.isExpanded() ? 0 : 500);
+                }}>{name}</a>
+            );
+
+            files.push({
+                control: control,
+                toc: tableOfContents,
+                jsx: jsx(id, control, key)
+            });
+        }
+
+        let logs = [];
+        decryptedData.forEach(file => {
+            let name = file.name;
+            if (name.startsWith("debug") && name.endsWith(".log")) {
+                logs.push(file);
+                return;
+            } else if (logs.length !== 0) {
+                create(
+                    "Logs",
+                    (id, fileControl, key) => <Logs id={id} fileControl={fileControl} key={key} logs={logs}/>
+                );
+                logs = [];
+            }
+
+            if (name === "environment.json") {
+                create(
+                    "Environment",
+                    (id, fileControl, key) => <Environment id={id} fileControl={fileControl} key={key} file={file}/>
+                );
+            } else if (name === "plugins.json") {
+                create(
+                    "Plugins",
+                    (id, fileControl, key) => <Plugins id={id} fileControl={fileControl} key={key} file={file}/>
+                );
+            } else {
+                create(
+                    name,
+                    (id, fileControl, key) => <File id={id} fileControl={fileControl} key={key} file={file}/>
+                );
+            }
+        });
+
+        setFiles(files);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [decryptedData]);
+
+    debugFiles.forEach(file => {
+        file.control.setExpandedParent = expanded => {
+            file.control.setExpanded(expanded);
+
+            let fail = true;
+            for (let i = 0; i < debugFiles.length; i++) {
+                let control = debugFiles[i].control;
+                if ((control === file.control ? expanded : control.isExpanded()) === allExpanded) {
+                    fail = false;
+                }
+            }
+            if (fail) {
+                setAllExpanded(!allExpanded);
+            }
+        }
+    })
 
     useEffect(() => {
         // Changes the hash to itself after decryption so the browser jumps to the desired file
@@ -67,7 +165,7 @@ function Page({ data, serverError }) {
 
         // noinspection SillyAssignmentJS
         window.location.hash = window.location.hash;
-    }, [decryptedData]);
+    }, [debugFiles]);
 
     if (error != null) {
         return <>
@@ -80,74 +178,6 @@ function Page({ data, serverError }) {
             <h2>Loading...</h2>
         </>
     }
-
-    let location = window.location ? window.location.hash : "";
-    if (location.startsWith("#")) {
-        location = location.substring(1);
-    }
-    let lastIndex = location.lastIndexOf("#");
-    if (lastIndex !== -1) {
-        location = location.substring(0, lastIndex);
-    }
-
-    // Keep track of controls, so we can check if we need to change the "Collapse all" / "Show all" button based on
-    // all the files being in the opposite status
-    let fileControls = [];
-    function makeControl() {
-        let control = {expanded: allExpanded, notifyExpanded: () => {
-            let fail = true;
-            fileControls.forEach(control => {
-                if (control.currentExpanded === allExpanded) {
-                    fail = false;
-                }
-            });
-
-            if (fail) {
-                setAllExpanded(!allExpanded);
-            }
-        }};
-        fileControls.push(control);
-        return control;
-    }
-
-    let tableOfContents = [];
-    let files = [];
-    let logs = [];
-    decryptedData.forEach((file, i) => {
-        let name = file.name;
-        if (name.startsWith("debug") && name.endsWith(".log")) {
-            logs.push(file);
-            return;
-        } else if (logs.length !== 0) {
-            let currentLocation = location + "#logs";
-            let control = makeControl();
-            tableOfContents.push(<a key={i - 1} onClick={() => {
-                control.expand(true)
-                setTimeout(() => window.location.hash = "#" + currentLocation, control.currentExpanded ? 0 : 500);
-            }}>Debug Logs</a>);
-            files.push(<Logs id={currentLocation} logs={logs} key={i - 1} fileControl={control}/>);
-            logs = [];
-        }
-
-        let control = makeControl();
-        let currentLocation;
-        let jsx;
-
-        if (name === "environment.json") {
-            name = "Environment"
-            currentLocation = location + "#" + name.toLowerCase();
-            jsx = <Environment id={currentLocation} file={file} key={i} fileControl={control}/>
-        } else {
-            currentLocation = location + "#" + name;
-            jsx = <File id={currentLocation} file={file} key={i} lineNumbers={true} fileControl={control}/>;
-        }
-
-        tableOfContents.push(<a key={i} onClick={() => {
-            control.expand(true)
-            setTimeout(() => window.location.hash = "#" + currentLocation, control.currentExpanded ? 0 : 500);
-        }}>{name}</a>);
-        files.push(jsx);
-    });
 
     return <>
         <Head>
@@ -162,11 +192,18 @@ function Page({ data, serverError }) {
                 </a>
                 <div className={`${styles.fileControl} ${styles.appControl}`}>
                     <button onClick={() => setSettingsOpen(true)}>Settings</button>
-                    <button onClick={() => setAllExpanded(!allExpanded)} style={{width: "5rem"}}>{allExpanded ? "Collapse all" : "Expand all"}</button>
+                    <button onClick={() => {
+                        setAllExpanded(!allExpanded);
+                        debugFiles.forEach(file => {
+                            if (file.control?.setExpanded) {
+                                file.control.setExpanded(!allExpanded);
+                            }
+                        })
+                    }} style={{width: "5rem"}}>{allExpanded ? "Collapse all" : "Expand all"}</button>
                 </div>
             </div>
-            <TableOfContents headings={tableOfContents} settings={settings} changeSettings={changeSettings}/>
-            {files}
+            <TableOfContents headings={debugFiles.map(file => file.toc)} settings={settings} changeSettings={changeSettings}/>
+            {debugFiles.map(file => file.jsx)}
         </div>
         <SettingsModal open={settingsOpen} close={() => setSettingsOpen(false)} settings={settings} changeSettings={changeSettings}/>
     </>
