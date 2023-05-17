@@ -187,7 +187,7 @@ function Page({ data, serverError }) {
 
         <div className={styles.container}>
             <div className={styles.heading}>
-                <a href={"#" + location}>
+                <a href={"#" + hash}>
                     <h1>Debug report</h1>
                 </a>
                 <div className={`${styles.fileControl} ${styles.appControl}`}>
