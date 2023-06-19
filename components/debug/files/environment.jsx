@@ -103,7 +103,7 @@ function OnlineModeCard({ onlineMode, offlineModeUuid }) {
         {onlineMode !== "OFFLINE" && isUuid ? (<>
             <p>A player with a version 3 UUID has logged into this server.</p>
             <p>This likely means the proxy is in offline mode or ip forwarding is not configured</p>
-        </>) : <></>}
+        </>) : null}
     </EnvironmentCard>
 }
 
