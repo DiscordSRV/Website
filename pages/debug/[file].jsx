@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import {useRouter} from "next/router";
 import {useEffect, useState} from 'react';
 import styles from '../../styles/debug.module.css'
 import Logs from "../../components/debug/files/logs";
@@ -11,7 +12,10 @@ import Plugins from "../../components/debug/files/plugins";
 
 const LOCAL_STORAGE_KEY = "debug_options";
 
-function Page({ data, serverError }) {
+function Page({ serverError }) {
+    const router = useRouter();
+    const [ data, setData ] = useState(null);
+
     const [ decryptedData, setDecryptedData ] = useState(null);
     const [ error, setError ] = useState(serverError);
 
@@ -29,6 +33,18 @@ function Page({ data, serverError }) {
         setSettings(settings);
         window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
     }
+
+    useEffect(() => {
+        const file = router.query["file"];
+        if (!file) {
+            return;
+        }
+
+        async function queryData() {
+            setData(await getFromPaste(`https://bytebin.lucko.me/${file}`));
+        }
+        queryData().then(() => {});
+    }, [router.query]);
 
     useEffect(() => {
         // Load options from localStorage
@@ -207,21 +223,6 @@ function Page({ data, serverError }) {
         </div>
         <SettingsModal open={settingsOpen} close={() => setSettingsOpen(false)} settings={settings} changeSettings={changeSettings}/>
     </>
-}
-
-// noinspection JSUnusedGlobalSymbols
-export async function getServerSideProps(context) {
-    try {
-        const { file } = context.query
-        const data = await getFromPaste(`https://bytebin.lucko.me/${file}`)
-
-        return { props: { data } }
-    } catch (err) {
-        if ((err.response && err.response.status === 404) || err.notFound) {
-            return { notFound: true }
-        }
-        return { props: { serverError: err.message } }
-    }
 }
 
 // noinspection JSUnusedGlobalSymbols
