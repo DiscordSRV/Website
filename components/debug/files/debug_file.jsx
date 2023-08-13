@@ -1,4 +1,4 @@
-import useCollapse from "react-collapsed";
+import { useCollapse } from "react-collapsed";
 import styles from "../../../styles/debug.module.css";
 import {useEffect, useState} from "react";
 import {decrypt, getFromPaste} from "../../../util/debug";
