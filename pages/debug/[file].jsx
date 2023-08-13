@@ -74,7 +74,7 @@ function Page({ serverError }) {
 
     // Decrypt data
     useEffect(() => {
-        if (data == null || hash == null) {
+        if (!data || !hash) {
             return;
         }
 
@@ -93,7 +93,7 @@ function Page({ serverError }) {
     }, [data, hash]);
 
     useEffect(() => {
-        if (decryptedData == null) {
+        if (!decryptedData) {
             return;
         }
 
@@ -158,22 +158,24 @@ function Page({ serverError }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [decryptedData]);
 
-    debugFiles.forEach(file => {
-        file.control.setExpandedParent = expanded => {
-            file.control.setExpanded(expanded);
+    useEffect(() => {
+        debugFiles.forEach(file => {
+            file.control.setExpandedParent = expanded => {
+                file.control.setExpanded(expanded);
 
-            let fail = true;
-            for (let i = 0; i < debugFiles.length; i++) {
-                let control = debugFiles[i].control;
-                if ((control === file.control ? expanded : control.isExpanded()) === allExpanded) {
-                    fail = false;
+                let fail = true;
+                for (let i = 0; i < debugFiles.length; i++) {
+                    let control = debugFiles[i].control;
+                    if ((control === file.control ? expanded : control.isExpanded()) === allExpanded) {
+                        fail = false;
+                    }
+                }
+                if (fail) {
+                    setAllExpanded(!allExpanded);
                 }
             }
-            if (fail) {
-                setAllExpanded(!allExpanded);
-            }
-        }
-    })
+        });
+    }, [allExpanded, debugFiles]);
 
     useEffect(() => {
         // Changes the hash to itself after decryption so the browser jumps to the desired file
@@ -189,7 +191,7 @@ function Page({ serverError }) {
             <p>{error.toString()}</p>
         </>
     }
-    if (decryptedData == null) {
+    if (!debugFiles || debugFiles.length === 0) {
         return <>
             <h2>Loading...</h2>
         </>

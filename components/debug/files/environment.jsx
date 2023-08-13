@@ -50,6 +50,10 @@ function VersionCard({ version, gitRevision, gitBranch, buildTime }) {
     let [versionCheck, setVersionCheck] = useState({});
 
     useEffect(() => {
+        if (!gitRevision || !version) {
+            return;
+        }
+
         let snapshot = version.endsWith("-SNAPSHOT");
         axios.get("https://download.discordsrv.com/v2/DiscordSRV/Ascension/" + (snapshot ? "testing" : null) + "/version-check/" + (snapshot ? gitRevision : version))
             .then(res => setVersionCheck(res.data))
