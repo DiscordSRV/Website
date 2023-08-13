@@ -1,11 +1,11 @@
-import Head from 'next/head'
+import CommonHead from "../components/CommonHead";
 
 export default function Home() {
   return (
     <div>
-      <Head>
-        <title>DiscordSRV</title>
-      </Head>
+      <CommonHead>
+          <title>DiscordSRV</title>
+      </CommonHead>
 
     </div>
   )

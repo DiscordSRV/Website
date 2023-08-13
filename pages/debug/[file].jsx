@@ -1,4 +1,3 @@
-import Head from 'next/head'
 import {useRouter} from "next/router";
 import {useEffect, useState} from 'react';
 import styles from '../../styles/debug.module.css'
@@ -9,6 +8,7 @@ import TableOfContents from "../../components/debug/files/table_of_contents";
 import {decrypt, getFromPaste} from "../../util/debug";
 import Environment from "../../components/debug/files/environment";
 import Plugins from "../../components/debug/files/plugins";
+import CommonHead from "../../components/CommonHead";
 
 const LOCAL_STORAGE_KEY = "debug_options";
 
@@ -198,10 +198,10 @@ function Page({ serverError }) {
     }
 
     return <>
-        <Head>
+        <CommonHead>
             <title>DiscordSRV | Debug report</title>
             <meta name="viewport" content="width=400"/>
-        </Head>
+        </CommonHead>
 
         <div className={styles.container}>
             <div className={styles.heading}>
