@@ -1,13 +1,13 @@
-import Head from "next/head";
 import Link from "next/link";
 import styles from '../styles/error.module.css'
+import CommonHead from "../components/CommonHead";
 
 export default function Custom404() {
     return (
         <>
-            <Head>
+            <CommonHead>
                 <title>DiscordSRV | Not Found</title>
-            </Head>
+            </CommonHead>
             <div className={styles.error}>
                 <h2>404 Not Found</h2>
                 <p>Took a wrong turn?</p>
