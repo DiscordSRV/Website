@@ -187,6 +187,9 @@
 
 .plainTextWrapper pre {
     margin: 0;
+
+    /* Static line height so line numbers always line up */
+    line-height: 110%;
 }
 
 .plainTextWrapper {

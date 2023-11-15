@@ -28,6 +28,11 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
     }
 
     const [ highlight, setHighlight ] = useState(false);
+
+    const [ yamlValidating, setYamlValidating ] = useState(false);
+    const [ yamlValidated, setYamlValidated ] = useState(false);
+    const [ yamlWarnings, setYamlWarnings ] = useState([]);
+
     const [ currentLineNumbers, setCurrentLineNumbers ] = useState(null);
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState(null);
@@ -57,11 +62,38 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading]);
 
+    async function validateYaml() {
+        setYamlValidating(true);
+        let addWarning = warning => {
+            let warnings = yamlWarnings;
+            warnings.push(warning);
+            setYamlWarnings(warnings);
+        };
+        try {
+            (await import('js-yaml')).load(file.content, addWarning);
+        } catch (e) {
+            console.log(e);
+            addWarning(e);
+        }
+        setYamlValidated(true);
+    }
+
     return (
         <div id={id} className={styles.file}>
             <div className={styles.fileHeader}>
                 <h4 className={styles.fileName}>{file.name}</h4>
                 <div className={`${styles.fileControl} ${styles.fileControlBar}`}>
+                    {
+                        yamlWarnings.length > 0
+                            ? <span style={{color: "red"}}>{yamlWarnings.length} {yamlWarnings.length === 1 ? "warning" : "warnings"}</span>
+                            : yamlValidated
+                                ? <span>Validation ok</span>
+                                : (yamlValidating ? <span>Validating...</span> : null)
+                    }
+                    {
+                        !file.name.endsWith(".yaml") ? null
+                            : <button onClick={async () => await validateYaml()} disabled={yamlValidating}>Validate</button>
+                    }
                     {
                         file.name.indexOf(".") === -1 || file.name.endsWith(".txt") || file.name.endsWith(".log") ? null :
                             <button onClick={() => setHighlight(!highlight)}>{highlight ? "Plain" : "Highlight"}</button>
@@ -89,7 +121,13 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
                                             currentLineNumbers == null ? null : (
                                                 <div className={styles.lineNumbers}>
                                                     {
-                                                        currentLineNumbers.map((line, i) => <pre key={i}>{line}</pre>)
+                                                        currentLineNumbers.map((line, i) => {
+                                                            if (yamlWarnings.find(x => x.mark.line === line - 1) != null) {
+                                                                // TODO: do this better
+                                                                return <pre key={i} style={{color: "red"}}>{line}</pre>
+                                                            }
+                                                            return <pre key={i}>{line}</pre>
+                                                        })
                                                     }
                                                 </div>
                                             )
