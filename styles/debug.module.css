@@ -49,14 +49,14 @@
 
 /* Logs file */
 
-.logControl {
+.multiFileControl {
     margin-bottom: 0.5rem;
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
 }
 
-.logControl h3 {
+.multiFileControl h3 {
     margin: 0;
 }
 

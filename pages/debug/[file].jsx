@@ -9,6 +9,7 @@ import {decrypt, getFromPaste} from "../../util/debug";
 import Environment from "../../components/debug/files/environment";
 import Plugins from "../../components/debug/files/plugins";
 import CommonHead from "../../components/CommonHead";
+import MultiFiles from "../../components/debug/files/multi_files";
 
 const LOCAL_STORAGE_KEY = "debug_options";
 
@@ -122,6 +123,8 @@ function Page({ serverError }) {
         }
 
         let logs = [];
+        let config = [];
+        let messageConfigs = [];
         decryptedData.forEach(file => {
             let name = file.name;
             if (name.startsWith("debug") && name.endsWith(".log")) {
@@ -133,6 +136,34 @@ function Page({ serverError }) {
                     (id, fileControl, key) => <Logs id={id} fileControl={fileControl} key={key} logs={logs}/>
                 );
                 logs = [];
+            }
+
+            if (name.endsWith("config.yaml")) {
+                file.label = name.startsWith("parsed") ? "Parsed" : "Disk";
+                config.push(file);
+                return;
+            } else if (config.length !== 0) {
+                create(
+                    "Config",
+                    (id, fileControl, key) => <MultiFiles id={id} fileControl={fileControl} key={key} files={config} header="Config"/>
+                );
+                config = [];
+            }
+
+            if (name.endsWith("messages.yaml")) {
+                let isParsed = name.startsWith("parsed_");
+                let split = name.split("_", 3);
+                let lang = split.length === 3 ? split[2] : null;
+
+                file.label = (isParsed ? "Parsed" : "Disk") + (lang ? " (" + lang + ")" : "");
+                messageConfigs.push(file);
+                return;
+            } else if (messageConfigs.length !== 0) {
+                create(
+                    "Messages",
+                    (id, fileControl, key) => <MultiFiles id={id} fileControl={fileControl} key={key} files={messageConfigs} header="Messages"/>
+                );
+                messageConfigs = [];
             }
 
             if (name === "environment.json") {

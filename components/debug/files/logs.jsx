@@ -2,25 +2,19 @@ import styles from "../../../styles/debug.module.css";
 import Modal from "../../modal";
 import {useEffect, useState} from "react";
 import {FileDisplay} from "./debug_file";
+import MultiFiles from "./multi_files";
 
 const LOG_LINE_PATTERN = /\[(\w*)] (?:\[(\w*)])?/;
 const UNCATEGORIZED = "Uncategorized";
 
 function Logs({ id, logs, fileControl }) {
-    const [ debugLogs, setDebugLogs ] = useState([]);
-    const [ selected, setSelected ] = useState(0);
-
-    const [ expanded, setExpanded ] = useState(fileControl.defaultExpanded);
-    if (fileControl) {
-        fileControl.isExpanded = () => expanded;
-        fileControl.setExpanded = expanded => setExpanded(expanded)
-    }
-
     const [ modalOpen, setModalOpen ] = useState(false);
     const [ availableCategories, setAvailableCategories ] = useState([]);
     const [ availableLevels, setAvailableLevels ] = useState([]);
     const [ selectedCategories, setSelectedCategories ] = useState(null);
     const [ selectedLevels, setSelectedLevels ] = useState(null);
+
+    const [ debugLogs, setDebugLogs ] = useState(null);
 
     function filterContent(content) {
         if (!content) {
@@ -58,24 +52,18 @@ function Logs({ id, logs, fileControl }) {
     }
 
     useEffect(() => {
-        if (debugLogs == null || selected == null) {
-            return;
-        }
-        debugLogs[selected]?.control.setExpanded(expanded);
-    }, [debugLogs, selected, expanded])
-
-    useEffect(() => {
         if (logs == null) {
             return;
         }
 
         let debugLogs = [];
-        logs.forEach(file => {
+        logs.forEach((file, i) => {
             let log = {
                 file: file,
                 content: file.content,
+                label: i + 1,
                 control: {
-                    defaultExpanded: expanded,
+                    //defaultExpanded: expanded,
                     setExpandedParent: expanded => fileControl.setExpandedParent(expanded)
                 }
             };
@@ -90,6 +78,10 @@ function Logs({ id, logs, fileControl }) {
 
     // Figure out what loggers & log levels are in the logs
     useEffect(() => {
+        if (!debugLogs) {
+            return;
+        }
+
         let usingAllCategories = selectedCategories?.length === availableCategories?.length;
         let usingAllLevels = selectedLevels?.length === availableLevels?.length;
 
@@ -133,32 +125,27 @@ function Logs({ id, logs, fileControl }) {
 
     return (
         <>
-            <div id={id} className={`${styles.fileControl} ${styles.logControl}`}>
-                <h3>Debug logs</h3>
-                {
-                    logs.map((log, i) => {
-                        return <button key={i} onClick={() => setSelected(i)} style={{width: "5rem"}}>{i === selected ? (i + 1) + " (Current)" : (i + 1)}</button>
-                    })
-                }
-                <button onClick={() => setModalOpen(true)}>Filters</button>
-            </div>
-            <div>
-                {debugLogs.map((log, i) => {
-                    let filtered = filterContent(log.content);
+            <MultiFiles id={id} header="Debug logs" fileControl={fileControl} files={debugLogs}
+                mapFileToJSX={controllable => {
+                    let filtered = filterContent(controllable.file.content);
                     return (
-                        <div key={i} style={{display: selected === i ? "block" : "none"}}>
-                            <FileDisplay file={log.file} fileControl={log.control} lineNumbers={filtered.lineNumbers} content={filtered.content} setContent={(content) => {
+                        <FileDisplay
+                            file={controllable.file.file} fileControl={controllable.control} lineNumbers={filtered.lineNumbers} content={filtered.content}
+                            setContent={(content) => {
                                 setDebugLogs(debugLogs.map((log, i2) => {
                                     if (i === i2) {
                                         log.content = content;
                                     }
                                     return log;
                                 }));
-                            }}/>
-                        </div>
+                            }}
+                        />
                     )
-                })}
-            </div>
+                }}
+                extraHeaderJSX={(
+                    <button onClick={() => setModalOpen(true)}>Filters</button>
+                )}
+            />
             <LogModal
                 open={modalOpen} close={() => setModalOpen(false)}
                 availableCategories={availableCategories} availableLevels={availableLevels}
