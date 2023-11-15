@@ -6,7 +6,6 @@ export default function Highlight({content}) {
     const [rendered, setRendered] = useState(null);
 
     useEffect(() => {
-        console.log(content);
         setRendered(hljs.highlightAuto(content).value);
     }, [content]);
 
