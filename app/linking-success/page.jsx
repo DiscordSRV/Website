@@ -1,19 +1,17 @@
-import CommonHead from "../components/CommonHead";
-import styles from '../styles/linking.succcess.module.css'
-import {useRouter} from "next/router";
+import styles from './linking-success.module.css'
 
-export default function Home() {
-    const router = useRouter()
-    const { state } = router.query;
+export const metadata = {
+    title: "DiscordSRV | Linking Success"
+}
+
+export default function Page({ searchParams }) {
+    let { state } = searchParams;
 
     const isDiscord = state === "discord";
     const isJoin = state === "join";
 
     return (
         <>
-            <CommonHead>
-                <title>DiscordSRV | Linking Success</title>
-            </CommonHead>
             <div style={{display: "flex", justifyContent: "center"}}>
                 <div className={styles.linkingSuccess}>
                     <h1>You are now successfully linked</h1>

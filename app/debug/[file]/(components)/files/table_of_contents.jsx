@@ -1,4 +1,4 @@
-import styles from "../../../styles/debug.module.css";
+import styles from "../../debug.module.css";
 import {FileDisplay} from "./debug_file";
 import {useEffect, useState} from "react";
 

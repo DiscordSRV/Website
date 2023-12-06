@@ -1,11 +1,11 @@
 import { useCollapse } from "react-collapsed";
-import styles from "../../../styles/debug.module.css";
+import styles from "../../debug.module.css";
 import {useEffect, useState} from "react";
-import {decrypt, getFromPaste} from "../../../util/debug";
+import {decrypt, getFromPaste} from "../../util";
 import dynamic from "next/dynamic";
 
 // Only load in highlight.js if we're going to highlight something
-const Highlight = dynamic(() => import("../../debug/highlight"), { ssr: false });
+const Highlight = dynamic(() => import("../highlight"), { ssr: false });
 
 export default function File({ id, file, fileControl, lineNumbers, nonText }) {
     const [ content, setContent ] = useState(file.content);

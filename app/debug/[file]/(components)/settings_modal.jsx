@@ -1,4 +1,4 @@
-import Modal from "../modal";
+import Modal from "../../../(components)/modal";
 
 const STORAGE_EXPANDED_BY_DEFAULT = "expandedByDefault";
 

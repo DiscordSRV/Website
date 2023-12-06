@@ -1,5 +1,5 @@
-import styles from "../../../styles/debug.module.css";
-import Modal from "../../modal";
+import styles from "../../debug.module.css";
+import Index from "../../../../(components)/modal";
 import {useEffect, useState} from "react";
 import {FileDisplay} from "./debug_file";
 import MultiFiles from "./multi_files";
@@ -158,7 +158,7 @@ function Logs({ id, logs, fileControl }) {
 
 function LogModal({ open, close, availableCategories, availableLevels, selectedCategories, setSelectedCategories, selectedLevels, setSelectedLevels }) {
     return (
-        <Modal title="Log filters" open={open} close={close} selectedCategories={selectedCategories}>
+        <Index title="Log filters" open={open} close={close} selectedCategories={selectedCategories}>
             <div className={styles.logFiltersWrapper}>
                 <div>
                     <h3>Levels</h3>
@@ -169,7 +169,7 @@ function LogModal({ open, close, availableCategories, availableLevels, selectedC
                     <FilterSelection available={availableCategories} selected={selectedCategories} setSelected={setSelectedCategories}/>
                 </div>
             </div>
-        </Modal>
+        </Index>
     );
 }
 

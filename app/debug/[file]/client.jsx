@@ -1,20 +1,21 @@
-import {useRouter} from "next/router";
+"use client"
 import {useEffect, useState} from 'react';
-import styles from '../../styles/debug.module.css'
-import Logs from "../../components/debug/files/logs";
-import File from "../../components/debug/files/debug_file";
-import SettingsModal, {STORAGE_EXPANDED_BY_DEFAULT} from "../../components/debug/settings_modal";
-import TableOfContents from "../../components/debug/files/table_of_contents";
-import {decrypt, getFromPaste} from "../../util/debug";
-import Environment from "../../components/debug/files/environment";
-import Plugins from "../../components/debug/files/plugins";
-import CommonHead from "../../components/CommonHead";
-import MultiFiles from "../../components/debug/files/multi_files";
+import styles from './debug.module.css'
+import Logs from "./(components)/files/logs";
+import File from "./(components)/files/debug_file";
+import SettingsModal, {STORAGE_EXPANDED_BY_DEFAULT} from "./(components)/settings_modal";
+import TableOfContents from "./(components)/files/table_of_contents";
+import {decrypt, getFromPaste} from "./util";
+import Environment from "./(components)/files/environment";
+import Plugins from "./(components)/files/plugins";
+import MultiFiles from "./(components)/files/multi_files";
 
 const LOCAL_STORAGE_KEY = "debug_options";
 
-function Page({ serverError }) {
-    const router = useRouter();
+export default function DebugClient({ params, serverError }) {
+    "use client"
+    const { file } = params;
+
     const [ data, setData ] = useState(null);
 
     const [ decryptedData, setDecryptedData ] = useState(null);
@@ -36,7 +37,6 @@ function Page({ serverError }) {
     }
 
     useEffect(() => {
-        const file = router.query["file"];
         if (!file) {
             return;
         }
@@ -45,7 +45,7 @@ function Page({ serverError }) {
             setData(await getFromPaste(`https://bytebin.lucko.me/${file}`));
         }
         queryData().then(() => {});
-    }, [router.query]);
+    }, [file]);
 
     useEffect(() => {
         // Load options from localStorage
@@ -229,11 +229,6 @@ function Page({ serverError }) {
     }
 
     return <>
-        <CommonHead>
-            <title>DiscordSRV | Debug report</title>
-            <meta name="viewport" content="width=400"/>
-        </CommonHead>
-
         <div className={styles.container}>
             <div className={styles.heading}>
                 <a href={"#" + hash}>
@@ -258,5 +253,3 @@ function Page({ serverError }) {
     </>
 }
 
-// noinspection JSUnusedGlobalSymbols
-export default Page

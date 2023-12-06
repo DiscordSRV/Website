@@ -1,7 +1,7 @@
 import {FileDisplay} from "./debug_file";
-import styles from "../../../styles/debug.module.css";
+import styles from "../../debug.module.css";
 import {useEffect, useState} from "react";
-import Modal from "../../modal";
+import Index from "../../../../(components)/modal";
 import axios from "axios";
 
 const ERROR = "error";
@@ -215,10 +215,10 @@ function EnvironmentCard({ title, content, status, children }) {
             </div>
 
             {children ? (
-                <Modal title={title} open={modalOpen} close={() => setModalOpen(false)}>
+                <Index title={title} open={modalOpen} close={() => setModalOpen(false)}>
                     <p>{content}</p>
                     {children}
-                </Modal>
+                </Index>
             ) : <></>}
         </div>
     )

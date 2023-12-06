@@ -1,6 +1,6 @@
-import styles from '../styles/modal.module.css'
+import styles from './style.module.css'
 
-export default function Modal({ title, open, close, children }) {
+export default function Index({ title, open, close, children }) {
     return (
         <div style={{display: open ? "block" : "none"}}>
             <div className={styles.modal}>

@@ -1,6 +1,6 @@
 import {FileDisplay} from "./debug_file";
-import styles from "../../../styles/debug.module.css";
-import Modal from "../../modal";
+import styles from "../../debug.module.css";
+import Modal from "../../../../(components)/modal";
 import {useState} from "react";
 
 export default function Plugins({ id, fileControl, file }) {

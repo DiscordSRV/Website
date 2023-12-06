@@ -1,13 +1,13 @@
 import Link from "next/link";
-import styles from '../styles/error.module.css'
-import CommonHead from "../components/CommonHead";
+import styles from './error.style.css'
 
-export default function Custom404() {
+export const manifest = {
+    title: "DiscordSRV | Not Found"
+}
+
+export default function NotFound() {
     return (
         <>
-            <CommonHead>
-                <title>DiscordSRV | Not Found</title>
-            </CommonHead>
             <div className={styles.error}>
                 <h2>404 Not Found</h2>
                 <p>Took a wrong turn?</p>
