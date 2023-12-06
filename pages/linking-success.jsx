@@ -7,6 +7,7 @@ export default function Home() {
     const { state } = router.query;
 
     const isDiscord = state === "discord";
+    const isJoin = state === "join";
 
     return (
         <>
@@ -16,7 +17,11 @@ export default function Home() {
             <div style={{display: "flex", justifyContent: "center"}}>
                 <div className={styles.linkingSuccess}>
                     <h1>You are now successfully linked</h1>
-                    <span>Return to the game and run the <code>{"/" + (isDiscord ? "discord " : "") + "link"}</code> command again, and you will be linked. You may close this tab</span>
+                    {isJoin
+                        ? <span>Rejoin the game </span>
+                        : <span>Return to the game and run the <code>{"/" + (isDiscord ? "discord " : "") + "link"}</code> command again, </span>
+                    }
+                    <span>and you will be linked. You may close this tab</span>
                 </div>
             </div>
         </>
