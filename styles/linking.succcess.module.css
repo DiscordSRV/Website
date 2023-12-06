@@ -1,0 +1,15 @@
+.linkingSuccess {
+    border: 2px solid black;
+    border-radius: 0.5rem;
+    background-color: #444;
+    max-width: 40rem;
+    margin: 5rem;
+    padding: 1rem;
+}
+
+.linkingSuccess code {
+    background-color: #222;
+    border: solid #555 1px;
+    padding: 3px;
+    border-radius: 5px;
+}
