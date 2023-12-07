@@ -9,6 +9,7 @@ export default function Page({ searchParams }) {
 
     const isDiscord = state === "discord";
     const isLink = state === "link";
+    const isFreeze = state === "freeze";
 
     return (
         <>
@@ -17,7 +18,7 @@ export default function Page({ searchParams }) {
                     <h1>You are now successfully linked</h1>
                     {!isDiscord && !isLink
                         ? <span>Rejoin the game </span>
-                        : <span>Return to the game and run the <code>{"/" + (isDiscord ? "discord " : "") + "link"}</code> command again, </span>
+                        : <span>Return to the game and run the <code>{"/" + (isDiscord ? "discord " : "") + "link"}</code> command{isFreeze ? '' : ' again'}, </span>
                     }
                     <span>and you will be linked. You may close this tab</span>
                 </div>
