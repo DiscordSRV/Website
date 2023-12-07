@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns="http://www.w3.org/2000/svg"
+   viewBox="0 0 512 512"
+   height="512"
+   width="512">
+  <rect
+     style="display:inline"
+     id="box"
+     rx="64"
+     fill="#000000"
+     stroke="none"
+     stroke-width="0"
+     height="512"
+     width="512"
+     y="0"
+     x="0" />
+  <path
+     style="display:inline;fill:#ffffff"
+     d="M 40,256 C 40,136.336 136.336,40 256,40 375.664,40 472,136.336 472,256 472,375.664 375.664,472 256,472 136.336,472 40,375.664 40,256 Z"
+     stroke-width="0"
+     stroke="none"
+     id="outer_circle" />
+  <path
+     style="display:inline;fill:#000000"
+     id="inner_circle"
+     stroke="none"
+     stroke-width="0"
+     d="m 80,256 c 0,-97.504 78.496,-176 176,-176 97.504,0 176,78.496 176,176 0,97.504 -78.496,176 -176,176 C 158.496,432 80,353.504 80,256 Z" />
+  <path
+     d="m 136,136 v 80 h 80 v -80 z m 80,80 v 40 h -40 v 80 40 h 40 v -40 h 80 v 40 h 40 v -40 -80 h -40 v -40 z m 80,0 h 80 v -80 h -80 z"
+     style="display:inline;fill:#ffffff;stroke:none;stroke-width:0"
+     id="creeper" />
+</svg>
