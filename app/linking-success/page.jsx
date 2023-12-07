@@ -16,7 +16,7 @@ export default function Page({ searchParams }) {
             <div style={{display: "flex", justifyContent: "center"}}>
                 <div className={styles.linkingSuccess}>
                     <h1>You are now successfully linked</h1>
-                    {!isDiscord && !isLink
+                    {!isDiscord && !isLink && !isFreeze
                         ? <span>Rejoin the game </span>
                         : <span>Return to the game and run the <code>{"/" + (isDiscord ? "discord " : "") + "link"}</code> command{isFreeze ? '' : ' again'}, </span>
                     }
