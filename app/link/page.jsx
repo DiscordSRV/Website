@@ -8,7 +8,7 @@ const optionalServices = [
 ];
 
 export default function LinkPage({ searchParams, services }) {
-    let { method } = searchParams ?? {};
+    let { command } = searchParams ?? {};
 
     let scopes = "minecraft discord";
     if (services) {
@@ -33,5 +33,5 @@ export default function LinkPage({ searchParams, services }) {
     let redirectUrl = encodeURIComponent("https://discordsrv.vankka.dev/linking-success");
     scopes = encodeURIComponent(scopes);
 
-    redirect(host + "/grant?app=" + application + "&redirectUrl=" + redirectUrl + "&scopes=" + scopes + "&state=" + (method ? method : "join"));
+    redirect(host + "/grant?app=" + application + "&redirectUrl=" + redirectUrl + "&scopes=" + scopes + "&state=" + (command ? command : "join"));
 }
