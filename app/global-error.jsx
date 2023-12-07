@@ -1,6 +1,6 @@
 "use client"
 
-import styles from './error.style.css'
+import styles from './error.module.css'
 import React from "react";
 
 export const manifest = {

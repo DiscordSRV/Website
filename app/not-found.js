@@ -1,11 +1,11 @@
 import Link from "next/link";
-import styles from './error.style.css'
+import styles from './error.module.css'
 
 export const manifest = {
     title: "DiscordSRV | Not Found"
 }
 
-export default function NotFound() {
+export default function notFound() {
     return (
         <>
             <div className={styles.error}>

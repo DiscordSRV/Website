@@ -1,7 +1,7 @@
 import {redirect} from "next/navigation";
 
-export default function Page({ searchParams }) {
-    let { method } = searchParams;
+export default function LinkPage({ searchParams }) {
+    let { method } = searchParams ?? {};
 
     let host = "https://minecraftauth.me";
     let application = encodeURIComponent("HIKzPIRfgil7qAnA");

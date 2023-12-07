@@ -2,10 +2,7 @@ import './global.css'
 
 export const metadata = {
     metadataBase: "/",
-    title: 'DiscordSRV',
-    openGraph: {
-        images: '/opengraph-image.png'
-    }
+    title: 'DiscordSRV'
 }
 
 export default function RootLayout({ children }) {
