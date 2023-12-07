@@ -22,7 +22,7 @@ export default function LinkPage({ searchParams, services }) {
                 }
 
                 if (extraService === service.char) {
-                    scopes += " " + service;
+                    scopes += " " + service.service;
                 }
             }
         }
