@@ -44,7 +44,7 @@ export default function DebugClient({ params, serverError }) {
         async function queryData() {
             setData(await getFromPaste(`https://bytebin.lucko.me/${file}`));
         }
-        queryData().then(() => {});
+        queryData().catch(err => setError(err)).then(() => {});
     }, [file]);
 
     useEffect(() => {
@@ -217,10 +217,12 @@ export default function DebugClient({ params, serverError }) {
     }, [debugFiles]);
 
     if (error != null) {
-        return <>
-            <h1>Whoops, looks like something went wrong</h1>
-            <p>{error.toString()}</p>
-        </>
+        return (
+            <div style={{margin: "3rem"}}>
+                <h1>Whoops, looks like something went wrong</h1>
+                <p>{error.toString()}</p>
+            </div>
+        )
     }
     if (!debugFiles || debugFiles.length === 0) {
         return <>
