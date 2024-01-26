@@ -8,6 +8,7 @@ export const manifest = {
 }
 
 export default function GlobalError({ error, reset }) {
+    console.log(error);
     return (
         <>
             <div className={styles.error}>

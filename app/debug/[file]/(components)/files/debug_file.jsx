@@ -1,7 +1,7 @@
 import { useCollapse } from "react-collapsed";
 import styles from "../../debug.module.css";
 import {useEffect, useState} from "react";
-import {decrypt, getFromPaste} from "../../util";
+import {decrypt, getFromBytebin} from "../../util";
 import dynamic from "next/dynamic";
 
 // Only load in highlight.js if we're going to highlight something
@@ -52,7 +52,7 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
             return;
         }
 
-        getFromPaste(file.url).then(result => {
+        getFromBytebin(file.url).then(result => {
             setContent(decrypt(result, file.decryption_key).content);
             setLoading(false);
         }).catch(err => {

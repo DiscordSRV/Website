@@ -5,14 +5,14 @@ import Logs from "./(components)/files/logs";
 import File from "./(components)/files/debug_file";
 import SettingsModal, {STORAGE_EXPANDED_BY_DEFAULT} from "./(components)/settings_modal";
 import TableOfContents from "./(components)/files/table_of_contents";
-import {decrypt, getFromPaste} from "./util";
+import {decrypt, decryptRaw, getFromBytebin, getFromBin} from "./util";
 import Environment from "./(components)/files/environment";
 import Plugins from "./(components)/files/plugins";
 import MultiFiles from "./(components)/files/multi_files";
 
 const LOCAL_STORAGE_KEY = "debug_options";
 
-export default function DebugClient({ params, serverError }) {
+export default function DebugClient({ params, serverError, legacy }) {
     "use client"
     const { file } = params;
 
@@ -37,15 +37,40 @@ export default function DebugClient({ params, serverError }) {
     }
 
     useEffect(() => {
-        if (!file) {
+        if (!file || !hash) {
             return;
         }
 
-        async function queryData() {
-            setData(await getFromPaste(`https://bytebin.lucko.me/${file}`));
+        async function queryLegacyData() {
+            let data = await getFromBin(`/api/bincors/${file}`);
+            let files = data.files;
+
+            let key = Uint8Array.from(encodeURIComponent(hash).replace(/%(..)/g, (m, v) => {
+                return String.fromCodePoint(parseInt(v, 16))
+            }), c => c.codePointAt(0));
+
+            let decryptedFiles = [];
+            files.forEach(file => {
+                let name = decryptRaw(file.name, key);
+                let content = decryptRaw(file.content, key);
+
+                decryptedFiles.push({ name: name, content: content });
+            });
+            setDecryptedData(decryptedFiles);
         }
-        queryData().catch(err => setError(err)).then(() => {});
-    }, [file]);
+
+        async function queryData() {
+            let data;
+            if (file?.length > 16) {
+                data = await getFromBin(`/api/bincors/${file}`).files[0].content;
+            } else {
+                data = await getFromBytebin(`https://bytebin.lucko.me/${file}`);
+            }
+            setData(data);
+        }
+
+        (legacy ? queryLegacyData() : queryData()).catch(err => setError(err)).then(() => {});
+    }, [file, hash, legacy]);
 
     useEffect(() => {
         // Load options from localStorage
@@ -73,21 +98,26 @@ export default function DebugClient({ params, serverError }) {
         setHash(location);
     }, []);
 
+    // Fail on missing hash (decryption key)
+    useEffect(() => {
+        if (!data) {
+            return;
+        }
+
+        // Load the initial file
+        if (!hash) {
+            setError("Decryption key not specified");
+        }
+    }, [data, hash]);
+
     // Decrypt data
     useEffect(() => {
         if (!data || !hash) {
             return;
         }
 
-        // Load the initial file
-        let key = hash;
-        if (!key) {
-            setError("Decryption key not specified");
-            return;
-        }
-
         try {
-            setDecryptedData(decrypt(data, key));
+            setDecryptedData(decrypt(data, hash));
         } catch (err) {
             setError(err);
         }
@@ -217,6 +247,7 @@ export default function DebugClient({ params, serverError }) {
     }, [debugFiles]);
 
     if (error != null) {
+        console.log(error);
         return (
             <div style={{margin: "3rem"}}>
                 <h1>Whoops, looks like something went wrong</h1>
@@ -234,7 +265,7 @@ export default function DebugClient({ params, serverError }) {
         <div className={styles.container}>
             <div className={styles.heading}>
                 <a href={"#" + hash}>
-                    <h1>Debug report</h1>
+                    <h1>{legacy ? "Bin" : "Debug report"}</h1>
                 </a>
                 <div className={`${styles.fileControl} ${styles.appControl}`}>
                     <button onClick={() => setSettingsOpen(true)}>Settings</button>

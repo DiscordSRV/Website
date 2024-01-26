@@ -3,6 +3,10 @@ import axios from "axios";
 
 function decrypt(data, decryptionKey) {
     decryptionKey = toArray(b64Decode(decryptionKey));
+    return JSON.parse(decryptRaw(data, decryptionKey));
+}
+
+function decryptRaw(data, decryptionKey) {
     const encrypted = toArray(b64Decode(data));
     if (decryptionKey.length < 16 || decryptionKey.length % 16 !== 0) {
         throw "Invalid length decryption key: " + decryptionKey.length
@@ -16,8 +20,7 @@ function decrypt(data, decryptionKey) {
     // Remove padding
     decrypted = decrypted.subarray(0, decrypted.byteLength - decrypted[decrypted.byteLength - 1]);
 
-    let decryptedString = aesjs.utils.utf8.fromBytes(decrypted);
-    return JSON.parse(decryptedString);
+    return aesjs.utils.utf8.fromBytes(decrypted);
 }
 
 function toArray(input) {
@@ -29,13 +32,16 @@ function b64Decode(b64) {
     return atob(standard);
 }
 
-async function getFromPaste(url) {
-    const res = await axios.get(url, { headers: { accept: "gzip" }, decompress: true});
-    if (res.headers['content-type'] !== 'application/octet-stream') {
+async function getFromBytebin(url) {
+    const response = await axios.get(url, { headers: { accept: "gzip" }, decompress: true});
+    if (response.headers['content-type'] !== 'application/octet-stream') {
         throw {notFound: true};
     }
-    const data = res.data;
-    return data.files ? data.files[0].content : data
+    return response.data;
+}
+async function getFromBin(url) {
+    const response = await axios.get(url);
+    return response.data;
 }
 
-export {decrypt, toArray, b64Decode, getFromPaste}
+export {decrypt, decryptRaw, toArray, b64Decode, getFromBytebin, getFromBin}
