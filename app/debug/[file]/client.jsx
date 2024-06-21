@@ -4,7 +4,7 @@ import styles from './debug.module.css'
 import Logs from "./(components)/files/logs";
 import SettingsModal, {POLITICS, STORAGE_EXPANDED_BY_DEFAULT} from "./(components)/settings_modal";
 import TableOfContents from "./(components)/files/table_of_contents";
-import {decrypt, decryptRaw, getFromBin, getFromBytebin} from "./(util)/util";
+import {b64Decode, decrypt, getFromBin, getFromBytebin} from "./(util)/util";
 import Environment from "./(components)/files/environment";
 import Plugins from "./(components)/files/plugins";
 import MultiFiles from "./(components)/files/multi_files";
@@ -47,17 +47,15 @@ export default function DebugClient({ params, serverError, legacy }) {
             let data = await getFromBin(`/api/bincors/${file}`);
             let files = data.files;
 
-            let key = Uint8Array.from(encodeURIComponent(hash).replace(/%(..)/g, (m, v) => {
-                return String.fromCodePoint(parseInt(v, 16))
-            }), c => c.codePointAt(0));
-
             let decryptedFiles = [];
-            files.forEach(file => {
-                let name = decryptRaw(file.name, key);
-                let content = decryptRaw(file.content, key);
+            for (const file of files) {
+                let name = await decrypt(b64Decode(file.name), hash);
+                let content = await decrypt(b64Decode(file.content), hash);
+                console.log("name", name);
+                console.log("content", content);
 
                 decryptedFiles.push({ name: name, content: content });
-            });
+            }
             setDecryptedData(decryptedFiles);
         }
 
@@ -118,11 +116,15 @@ export default function DebugClient({ params, serverError, legacy }) {
             return;
         }
 
-        try {
-            setDecryptedData(decrypt(data, hash));
-        } catch (err) {
-            setError(err);
+        async function getData() {
+            try {
+                const decrypted = await decrypt(b64Decode(data), b64Decode(hash));
+                setDecryptedData(JSON.parse(decrypted));
+            } catch (err) {
+                setError(err);
+            }
         }
+        getData();
     }, [data, hash]);
 
     useEffect(() => {

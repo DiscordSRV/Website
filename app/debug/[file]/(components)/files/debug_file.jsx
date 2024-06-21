@@ -52,8 +52,9 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
             return;
         }
 
-        getFromBytebin(file.url).then(result => {
-            setContent(decrypt(result, file.decryption_key).content);
+        getFromBytebin(file.url).then(async(result) => {
+            const decrypted = await decrypt(result, file.decryption_key);
+            setContent(JSON.parse(decrypted).content);
             setLoading(false);
         }).catch(err => {
             setError(err.message);

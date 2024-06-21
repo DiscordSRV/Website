@@ -1,35 +1,33 @@
-import * as aesjs from "aes-js";
-
-function decrypt(data, decryptionKey) {
-    decryptionKey = toArray(b64Decode(decryptionKey));
-    return JSON.parse(decryptRaw(data, decryptionKey));
-}
-
-function decryptRaw(data, decryptionKey) {
-    const encrypted = toArray(b64Decode(data));
-    if (decryptionKey.length < 16 || decryptionKey.length % 16 !== 0) {
-        throw "Invalid length decryption key: " + decryptionKey.length
-    }
-
-    let iv = encrypted.subarray(0, 16);
-    let content = encrypted.subarray(16);
-    const aes = new aesjs.ModeOfOperation.cbc(decryptionKey, iv);
-
-    let decrypted = aes.decrypt(content);
-    // Remove padding
-    decrypted = decrypted.subarray(0, decrypted.byteLength - decrypted[decrypted.byteLength - 1]);
-
-    return aesjs.utils.utf8.fromBytes(decrypted);
-}
-
-function toArray(input) {
-    // @ts-ignore
-    return Uint8Array.from(input, c => c.charCodeAt(0));
-}
-
 function b64Decode(b64) {
-    let standard = b64.replaceAll('-', '+').replaceAll('_', '/');
-    return atob(standard);
+    return atob(b64.replaceAll('-', '+').replaceAll('_', '/'));
+}
+
+function stringToBytes(string) {
+    return Uint8Array.from(string, (m) => m.charCodeAt(0));
+}
+
+async function decrypt(encryptedData, decryptionKey) {
+    const key = await crypto.subtle.importKey(
+        "raw",
+        stringToBytes(decryptionKey),
+        {
+            name: "AES-CBC",
+            keyLength: 16
+        },
+        false,
+        ["decrypt"]
+    );
+
+    const bytes = stringToBytes(encryptedData);
+    const decryptedBytes = await crypto.subtle.decrypt(
+        {
+            name: "AES-CBC",
+            iv: bytes.slice(0, 16)
+        },
+        key,
+        bytes.slice(16)
+    );
+    return new TextDecoder().decode(decryptedBytes);
 }
 
 async function getFromBytebin(url) {
@@ -39,9 +37,10 @@ async function getFromBytebin(url) {
     }
     return await response.text();
 }
+
 async function getFromBin(url) {
     const response = await fetch(url);
     return await response.json();
 }
 
-export {decrypt, decryptRaw, toArray, b64Decode, getFromBytebin, getFromBin}
+export {b64Decode, decrypt, getFromBytebin, getFromBin}
