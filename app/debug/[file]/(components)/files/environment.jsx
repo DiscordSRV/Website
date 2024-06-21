@@ -2,7 +2,6 @@ import {FileDisplay} from "./debug_file";
 import styles from "../../debug.module.css";
 import {useEffect, useState} from "react";
 import Index from "../../../../(components)/modal";
-import axios from "axios";
 
 const ERROR = "error";
 const WARNING = "warning";
@@ -55,8 +54,8 @@ function VersionCard({ version, gitRevision, gitBranch, buildTime }) {
         }
 
         let snapshot = version.endsWith("-SNAPSHOT");
-        axios.get("https://download.discordsrv.com/v2/DiscordSRV/Ascension/" + (snapshot ? "testing" : null) + "/version-check/" + (snapshot ? gitRevision : version))
-            .then(res => setVersionCheck(res.data))
+        fetch("https://download.discordsrv.com/v2/DiscordSRV/Ascension/" + (snapshot ? "testing" : null) + "/version-check/" + (snapshot ? gitRevision : version))
+            .then(res => setVersionCheck(res.json()))
             .catch(err => console.log("Failed to check version status", err));
     }, [gitRevision, version]);
 

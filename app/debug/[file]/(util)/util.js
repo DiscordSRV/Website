@@ -1,5 +1,4 @@
 import * as aesjs from "aes-js";
-import axios from "axios";
 
 function decrypt(data, decryptionKey) {
     decryptionKey = toArray(b64Decode(decryptionKey));
@@ -24,6 +23,7 @@ function decryptRaw(data, decryptionKey) {
 }
 
 function toArray(input) {
+    // @ts-ignore
     return Uint8Array.from(input, c => c.charCodeAt(0));
 }
 
@@ -33,15 +33,15 @@ function b64Decode(b64) {
 }
 
 async function getFromBytebin(url) {
-    const response = await axios.get(url, { headers: { accept: "gzip" }, decompress: true});
-    if (response.headers['content-type'] !== 'application/octet-stream') {
-        throw {notFound: true};
+    const response = await fetch(url);
+    if (response.headers.get('content-type') !== 'application/octet-stream') {
+        throw { notFound: true };
     }
-    return response.data;
+    return await response.text();
 }
 async function getFromBin(url) {
-    const response = await axios.get(url);
-    return response.data;
+    const response = await fetch(url);
+    return await response.json();
 }
 
 export {decrypt, decryptRaw, toArray, b64Decode, getFromBytebin, getFromBin}

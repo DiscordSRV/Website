@@ -22,11 +22,11 @@
 .heading {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
 }
 
 .appControl {
-    align-self: center;
-
+    margin-top: 2rem;
     display: flex;
     gap: 0.1rem;
 }

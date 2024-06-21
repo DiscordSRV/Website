@@ -2,13 +2,14 @@
 import {useEffect, useState} from 'react';
 import styles from './debug.module.css'
 import Logs from "./(components)/files/logs";
-import File from "./(components)/files/debug_file";
-import SettingsModal, {STORAGE_EXPANDED_BY_DEFAULT} from "./(components)/settings_modal";
+import SettingsModal, {POLITICS, STORAGE_EXPANDED_BY_DEFAULT} from "./(components)/settings_modal";
 import TableOfContents from "./(components)/files/table_of_contents";
-import {decrypt, decryptRaw, getFromBytebin, getFromBin} from "./util";
+import {decrypt, decryptRaw, getFromBin, getFromBytebin} from "./(util)/util";
 import Environment from "./(components)/files/environment";
 import Plugins from "./(components)/files/plugins";
 import MultiFiles from "./(components)/files/multi_files";
+import {politics_summary} from "./(util)/politics_util";
+import DebugFile from "./(components)/files/debug_file";
 
 const LOCAL_STORAGE_KEY = "debug_options";
 
@@ -30,9 +31,10 @@ export default function DebugClient({ params, serverError, legacy }) {
     const [ location, setLocation ] = useState(null);
 
     const [ debugFiles, setFiles ] = useState([]);
+    const [ politics, setPolitics ] = useState(null);
 
     function changeSettings(settings) {
-        setSettings(settings);
+        setSettings({...settings});
         window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
     }
 
@@ -155,6 +157,7 @@ export default function DebugClient({ params, serverError, legacy }) {
         let logs = [];
         let config = [];
         let messageConfigs = [];
+
         decryptedData.forEach(file => {
             let name = file.name;
             if (name.startsWith("debug") && name.endsWith(".log")) {
@@ -209,7 +212,7 @@ export default function DebugClient({ params, serverError, legacy }) {
             } else {
                 create(
                     name,
-                    (id, fileControl, key) => <File id={id} fileControl={fileControl} key={key} file={file}/>
+                    (id, fileControl, key) => <DebugFile id={id} fileControl={fileControl} key={key} file={file}/>
                 );
             }
         });
@@ -218,6 +221,18 @@ export default function DebugClient({ params, serverError, legacy }) {
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [decryptedData]);
+
+    useEffect(() => {
+        if (!decryptedData) {
+            return;
+        }
+
+        if (settings[POLITICS] === true) {
+            setPolitics(politics_summary(decryptedData));
+        } else {
+            setPolitics(null);
+        }
+    }, [decryptedData, settings]);
 
     useEffect(() => {
         debugFiles.forEach(file => {
@@ -267,6 +282,28 @@ export default function DebugClient({ params, serverError, legacy }) {
                 <a href={"#" + hash}>
                     <h1>{legacy ? "Bin" : "Debug report"}</h1>
                 </a>
+                {
+                    !!politics && (
+                        <div style={{display: "flex", flexDirection: "column"}}>
+                            <p>Politics enabled</p>
+                            {politics.map((file, i) => {
+                                return (
+                                    <table key={i}>
+                                        <thead>
+                                        <tr>
+                                            <th>{file.name}</th>
+                                            <th></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {file.files.map((file, i2) => <tr key={i2}><td>{file.name}</td><td>{file.count}</td></tr>)}
+                                        </tbody>
+                                    </table>
+                                )
+                            })}
+                        </div>
+                    )
+                }
                 <div className={`${styles.fileControl} ${styles.appControl}`}>
                     <button onClick={() => setSettingsOpen(true)}>Settings</button>
                     <button onClick={() => {
