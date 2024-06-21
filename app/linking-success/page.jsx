@@ -1,4 +1,4 @@
-import styles from './linking-success.module.css'
+import styles from '../styles/card.module.css'
 
 export const metadata = {
     title: "DiscordSRV | Linking Success"
@@ -14,7 +14,7 @@ export default function Page({ searchParams }) {
     return (
         <>
             <div style={{display: "flex", justifyContent: "center"}}>
-                <div className={styles.linkingSuccess}>
+                <div className={styles.card}>
                     <h1>You are now successfully linked</h1>
                     {!isDiscord && !isLink && !isFreeze
                         ? <span>Rejoin the game </span>
