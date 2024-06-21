@@ -15,5 +15,5 @@ export function politics_summary(files) {
 }
 
 function countMatches(regex, content) {
-    return (content.match(regex) || []).length
+    return ((content || "").match(regex) || []).length
 }
