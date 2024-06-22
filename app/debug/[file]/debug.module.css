@@ -203,6 +203,31 @@
     padding-right: 0.75rem;
 }
 
+.validationCursor {
+    position: relative;
+    margin-top: 2ex !important;
+
+    color: red !important;
+    align-self: flex-end;
+    z-index: 10;
+}
+
+.validationBox {
+    position: relative;
+    padding: 0.5rem;
+
+    border-radius: 0.5rem;
+
+    background-color: black;
+    height: 10rem;
+    z-index: 5;
+}
+.validationBox span {
+    position: relative;
+    top: 0.5rem;
+    text-wrap: wrap;
+}
+
 .bigFile {
     display: flex;
     flex-direction: column;

@@ -126,7 +126,7 @@ function Logs({ id, logs, fileControl }) {
     return (
         <>
             <MultiFiles id={id} header="Debug logs" fileControl={fileControl} files={debugLogs}
-                mapFileToJSX={controllable => {
+                mapFileToJSX={(controllable, i) => {
                     let filtered = filterContent(controllable.file.content);
                     return (
                         <FileDisplay

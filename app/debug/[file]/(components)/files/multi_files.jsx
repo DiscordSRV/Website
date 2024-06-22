@@ -63,7 +63,7 @@ export default function MultiFiles({ id, header, fileControl, files, mapFileToJS
                             <div key={i} style={{display: selected === i ? "block" : "none"}}>
                                 {
                                     mapFileToJSX
-                                        ? mapFileToJSX(file)
+                                        ? mapFileToJSX(file, i)
                                         : <FileDisplay file={file.file} content={file.content} fileControl={file.control} />
                                 }
                             </div>

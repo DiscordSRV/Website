@@ -1,7 +1,7 @@
 import { useCollapse } from "react-collapsed";
 import styles from "../../debug.module.css";
 import {useEffect, useState} from "react";
-import {decrypt, getFromBytebin} from "../../(util)/util";
+import {b64Decode, decrypt, getFromBytebin} from "../../(util)/util";
 import dynamic from "next/dynamic";
 
 // Only load in highlight.js if we're going to highlight something
@@ -31,7 +31,9 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
 
     const [ yamlValidating, setYamlValidating ] = useState(false);
     const [ yamlValidated, setYamlValidated ] = useState(false);
+    const [ yamlValidationVisible, setYamlValidationVisible ] = useState(true);
     const [ yamlWarnings, setYamlWarnings ] = useState([]);
+    const [ yamlShownWarning, setYamlShownWarning ] = useState(-1);
 
     const [ currentLineNumbers, setCurrentLineNumbers ] = useState(null);
     const [ loading, setLoading ] = useState(false);
@@ -53,10 +55,11 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
         }
 
         getFromBytebin(file.url).then(async(result) => {
-            const decrypted = await decrypt(result, file.decryption_key);
+            const decrypted = await decrypt(b64Decode(result), b64Decode(file.decryption_key));
             setContent(JSON.parse(decrypted).content);
             setLoading(false);
         }).catch(err => {
+            console.error("Failed to load file", err);
             setError(err.message);
             setLoading(false);
         });
@@ -66,7 +69,7 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
     async function validateYaml() {
         setYamlValidating(true);
         let addWarning = warning => {
-            let warnings = yamlWarnings;
+            let warnings = [];
             warnings.push(warning);
             setYamlWarnings(warnings);
         };
@@ -77,27 +80,46 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
             addWarning(e);
         }
         setYamlValidated(true);
+        setYamlValidating(false);
     }
+
+    const warning = yamlShownWarning !== -1 ? yamlWarnings[yamlShownWarning] : null;
 
     return (
         <div id={id} className={styles.file}>
             <div className={styles.fileHeader}>
                 <h4 className={styles.fileName}>{file.name}</h4>
                 <div className={`${styles.fileControl} ${styles.fileControlBar}`}>
+                    <span style={{marginRight: "0.3rem"}}>
+                        {
+                            yamlWarnings.length > 0
+                                ? <span style={{color: "red"}}>{yamlWarnings.length} {yamlWarnings.length === 1 ? "warning" : "warnings"}</span>
+                                : yamlValidated
+                                    ? <span style={{color: "limegreen"}}>Ok</span>
+                                    : (yamlValidating ? <span>Validating...</span> : null)
+                        }
+                    </span>
                     {
-                        yamlWarnings.length > 0
-                            ? <span style={{color: "red"}}>{yamlWarnings.length} {yamlWarnings.length === 1 ? "warning" : "warnings"}</span>
-                            : yamlValidated
-                                ? <span>Validation ok</span>
-                                : (yamlValidating ? <span>Validating...</span> : null)
-                    }
-                    {
-                        !file.name.endsWith(".yaml") ? null
-                            : <button onClick={async () => await validateYaml()} disabled={yamlValidating}>Validate</button>
+                        file.name.endsWith(".yaml") && (
+                            <button onClick={async () => {
+                                if (yamlValidated) {
+                                    setYamlValidationVisible(!yamlValidationVisible);
+                                } else {
+                                    await validateYaml()
+                                }
+                            }} disabled={yamlValidating || (yamlValidated && yamlWarnings.length === 0)}>
+                                {
+                                    yamlValidated
+                                        ? (yamlWarnings.length === 0 ? "Validated" : (yamlValidationVisible ? "Hide" : "Show") + " val.")
+                                        : "Validate"
+                                }
+                            </button>
+                        )
                     }
                     {
                         file.name.indexOf(".") === -1 || file.name.endsWith(".txt") || file.name.endsWith(".log") ? null :
-                            <button onClick={() => setHighlight(!highlight)}>{highlight ? "Plain" : "Highlight"}</button>
+                            <button
+                                onClick={() => setHighlight(!highlight)}>{highlight ? "Plain" : "Highlight"}</button>
                     }
                     <button onClick={() => {
                         // Use either the fileControl's expanding function or this file's expanded state
@@ -118,23 +140,33 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
                                 highlight ?
                                     <Highlight content={content}/> :
                                     <div className={nonText ? null : styles.plainTextWrapper}>
+                                        <LineNumbers
+                                            currentLineNumbers={currentLineNumbers}
+                                            yamlWarnings={yamlWarnings}
+                                            yamlValidationVisible={yamlValidationVisible}
+                                            yamlShownWarning={yamlShownWarning}
+                                            setYamlShownWarning={setYamlShownWarning}
+                                        />
                                         {
-                                            currentLineNumbers == null ? null : (
-                                                <div className={styles.lineNumbers}>
-                                                    {
-                                                        currentLineNumbers.map((line, i) => {
-                                                            if (yamlWarnings.find(x => x.mark.line === line - 1) != null) {
-                                                                // TODO: do this better
-                                                                return <pre key={i} style={{color: "red"}}>{line}</pre>
-                                                            }
-                                                            return <pre key={i}>{line}</pre>
-                                                        })
-                                                    }
-                                                </div>
-                                            )
-                                        }
-                                        {
-                                            nonText ? <div>{content}</div> : <pre>{content}</pre>
+                                            nonText ? <div style={{overflowX: "auto"}}>{content}</div> : <pre>
+                                                {yamlValidationVisible && warning && (
+                                                    <div style={{position: "relative"}}>
+                                                        <div style={{position: "absolute"}}>
+                                                            <pre className={styles.validationCursor} style={{
+                                                                top: ((warning.mark.line - 1) * 2.2) + "ex",
+                                                                left: (warning.mark.column - 1) + "ch"
+                                                            }}>^</pre>
+                                                            <div className={styles.validationBox} style={{
+                                                                top: ((warning.mark.line - 2) * 2.2) + "ex",
+                                                                width: Math.max(60, warning.mark.column + 5) + "ch"
+                                                            }}>
+                                                                <span>{warning.reason}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {content}
+                                            </pre>
                                         }
                                     </div>
                             }
@@ -142,7 +174,8 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
                     </div>
                 ) : (
                     <div className={styles.bigFile}>
-                        <p>This file is {file.length.toLocaleString('en-US')} characters long. It wasn&apos;t loaded to prevent overloading your browser.</p>
+                        <p>This file is {file.length.toLocaleString('en-US')} characters long. It wasn&apos;t loaded to
+                            prevent overloading your browser.</p>
                         <div className={styles.fileControl}>
                             <button onClick={() => {
                                 if (loading) {
@@ -159,4 +192,27 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
             </div>
         </div>
     )
+}
+
+function LineNumbers({ currentLineNumbers, yamlWarnings, yamlValidationVisible, yamlShownWarning, setYamlShownWarning }) {
+    return currentLineNumbers !== null && (<div className={styles.lineNumbers}>
+        {
+            currentLineNumbers.map((line, i) => {
+                const warningIndex = yamlWarnings.findIndex(x => x.mark.line === line);
+                return (
+                    <div style={yamlValidationVisible && warningIndex !== -1 ? {display: "flex", flexDirection: "row"} : null} key={i}>
+                        {
+                            yamlValidationVisible && warningIndex !== -1 && (
+                                <>
+                                    <pre style={{color: "red", cursor: "pointer"}}
+                                         onClick={() => setYamlShownWarning(yamlShownWarning >= 0 ? -1 : warningIndex)}>!</pre>
+                                </>
+                            )
+                        }
+                        <pre>{line}</pre>
+                    </div>
+                )
+            })
+        }
+    </div>)
 }
