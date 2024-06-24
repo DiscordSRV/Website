@@ -46,18 +46,23 @@ function DiscordSRVCard({ discordSRV }) {
 }
 
 function VersionCard({ version, gitRevision, gitBranch, buildTime }) {
-    let [versionCheck, setVersionCheck] = useState({});
+    const [versionCheck, setVersionCheck] = useState({});
+    const [versionCheckFailed, setVersionCheckFailed] = useState(false);
 
     useEffect(() => {
-        if (!gitRevision || !version) {
-            return;
+        async function runAsync() {
+            try {
+                const snapshot = version.endsWith("-SNAPSHOT");
+                const response = await fetch("https://download.discordsrv.com/v2/DiscordSRV/Ascension/"
+                    + (snapshot ? "testing" : null) + "/version-check/" + (snapshot ? gitRevision : version))
+                setVersionCheck(await response.json());
+            } catch (e) {
+                console.error("Failed to check version status", e);
+                setVersionCheckFailed(true);
+            }
         }
-
-        let snapshot = version.endsWith("-SNAPSHOT");
-        fetch("https://download.discordsrv.com/v2/DiscordSRV/Ascension/" + (snapshot ? "testing" : null) + "/version-check/" + (snapshot ? gitRevision : version))
-            .then(res => setVersionCheck(res.json()))
-            .catch(err => console.log("Failed to check version status", err));
-    }, [gitRevision, version]);
+        runAsync();
+    }, [version, gitRevision]);
 
     let status = INFO;
     if (versionCheck && versionCheck.status) {
@@ -71,6 +76,8 @@ function VersionCard({ version, gitRevision, gitBranch, buildTime }) {
             // Unknown
             status = WARNING;
         }
+    } else if (versionCheckFailed) {
+        status = WARNING;
     }
 
     return <EnvironmentCard title="Version" content={version + " (" + gitBranch + ")"} status={status}>
@@ -78,7 +85,7 @@ function VersionCard({ version, gitRevision, gitBranch, buildTime }) {
         <p>Build Time: {buildTime}</p>
         <hr/>
         <h3>Version check status</h3>
-        <p>{versionCheck.status}</p>
+        <p>{versionCheck.status ?? (versionCheckFailed ? "Failed to version check" : "")}</p>
         {versionCheck.amount > -1 ? <p>Behind by {versionCheck.amount} {versionCheck.amountType}</p> : <></>}
         {versionCheck.insecure ? <p style={{fontWeight: "bold"}}>This version is insecure!</p> : <></>}
         {versionCheck.securityIssues && versionCheck.securityIssues.length !== 0 ? <>
