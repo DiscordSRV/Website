@@ -100,7 +100,7 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
                         }
                     </span>
                     {
-                        file.name.endsWith(".yaml") && (
+                        /\.ya?ml$/.test(file.name) && (
                             <button onClick={async () => {
                                 if (yamlValidated) {
                                     setYamlValidationVisible(!yamlValidationVisible);
