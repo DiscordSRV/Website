@@ -51,8 +51,6 @@ export default function DebugClient({ params, serverError, legacy }) {
             for (const file of files) {
                 let name = await decrypt(b64Decode(file.name), hash);
                 let content = await decrypt(b64Decode(file.content), hash);
-                console.log("name", name);
-                console.log("content", content);
 
                 decryptedFiles.push({ name: name, content: content });
             }
@@ -96,19 +94,12 @@ export default function DebugClient({ params, serverError, legacy }) {
             location = location.substring(0, lastIndex);
         }
         setHash(location);
-    }, []);
 
-    // Fail on missing hash (decryption key)
-    useEffect(() => {
-        if (!data) {
-            return;
-        }
-
-        // Load the initial file
-        if (!hash) {
+        if (!location) {
+            // Fail on missing hash (decryption key)
             setError("Decryption key not specified");
         }
-    }, [data, hash]);
+    }, []);
 
     // Decrypt data
     useEffect(() => {

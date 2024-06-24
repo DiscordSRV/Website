@@ -32,14 +32,22 @@ async function decrypt(encryptedData, decryptionKey) {
 
 async function getFromBytebin(url) {
     const response = await fetch(url);
-    if (response.headers.get('content-type') !== 'application/octet-stream') {
-        throw { notFound: true };
+    if (response.status === 404 || response.headers.get('content-type') !== 'application/octet-stream') {
+        throw "Invalid bytebin url";
+    }
+    if (response.status !== 200) {
+        throw "Failed to get Bytebin: " + response.statusText + " (" + response.status + ")\n"
+            + (await response.text().catch(err => console.error("Failed to read bytebin body", err)))
     }
     return await response.text();
 }
 
 async function getFromBin(url) {
     const response = await fetch(url);
+    if (response.status !== 200) {
+        throw "Failed to get Bin: " + response.statusText + " (" + response.status + ")\n"
+            + (await response.text().catch(err => console.error("Failed to read bin body", err)))
+    }
     return await response.json();
 }
 
