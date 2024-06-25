@@ -2,11 +2,13 @@ import Modal from "../../../(components)/modal";
 
 export const STORAGE_EXPANDED_BY_DEFAULT = "expandedByDefault";
 export const HIGHLIGHT_BY_DEFAULT = "highlightByDefault";
+export const VALIDATE_YAML_BY_DEFAULT = "validateYamlByDefault";
 export const POLITICS = "politics";
 
 export default function SettingsModal({ open, close, settings, changeSettings }) {
     let expandedByDefault = settings[STORAGE_EXPANDED_BY_DEFAULT] === true;
     let highlightByDefault = settings[HIGHLIGHT_BY_DEFAULT] === true;
+    let validateYamlByDefault = settings[VALIDATE_YAML_BY_DEFAULT] === true;
     let politics = settings[POLITICS] === true;
     return (
         <Modal title="Settings" open={open} close={close}>
@@ -24,6 +26,13 @@ export default function SettingsModal({ open, close, settings, changeSettings })
                         settings[HIGHLIGHT_BY_DEFAULT] = event.target.checked;
                         changeSettings(settings);
                     }} defaultChecked={highlightByDefault}/>
+                </label>
+                <label>
+                    Auto Validate .yaml files:&nbsp;
+                    <input type="checkbox" onChange={event => {
+                        settings[VALIDATE_YAML_BY_DEFAULT] = event.target.checked;
+                        changeSettings(settings);
+                    }} defaultChecked={validateYamlByDefault}/>
                 </label>
                 <label>
                     Politics&nbsp;

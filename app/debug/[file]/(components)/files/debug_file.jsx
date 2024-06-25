@@ -1,9 +1,9 @@
 import { useCollapse } from "react-collapsed";
 import styles from "../../debug.module.css";
-import {lazy, Suspense, useContext, useEffect, useState} from "react";
+import {lazy, Suspense, useCallback, useContext, useEffect, useState} from "react";
 import {b64Decode, decrypt, getFromBytebin} from "../../(util)/util";
 import {SettingsContext} from "../../client";
-import {HIGHLIGHT_BY_DEFAULT} from "../settings_modal";
+import {HIGHLIGHT_BY_DEFAULT, VALIDATE_YAML_BY_DEFAULT} from "../settings_modal";
 
 // Only load in highlight.js if we're going to highlight something
 const Highlight = lazy(() => import("../highlight"));
@@ -29,6 +29,7 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
     }
 
     const highlightable = file.name.indexOf(".") !== -1 && !file.name.endsWith(".txt");
+    const yaml = /\.ya?ml$/.test(file.name);
     const settings = useContext(SettingsContext);
 
     const [ highlight, setHighlight ] = useState(false);
@@ -40,14 +41,6 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
 
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState(null);
-
-    useEffect(() => {
-        const highlight = settings[HIGHLIGHT_BY_DEFAULT];
-        if (highlight && highlightable && file.content.length < 50_000) {
-            // Auto highlight files that are less than 50k chars based on setting
-            setHighlight(highlight);
-        }
-    }, [settings, highlightable, file]);
 
     // File downloading logic
     useEffect(() => {
@@ -68,7 +61,7 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading]);
 
-    async function validateYaml() {
+    const validateYaml = useCallback(async () => {
         setYamlValidating(true);
         let addWarning = warning => {
             let warnings = [];
@@ -76,6 +69,7 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
             setYamlWarnings(warnings);
         };
         try {
+            // Only load js-yaml if needed
             (await import('js-yaml')).load(file.content, addWarning);
         } catch (e) {
             console.log(e);
@@ -83,7 +77,20 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
         }
         setYamlValidated(true);
         setYamlValidating(false);
-    }
+    }, [file]);
+
+    useEffect(() => {
+        if (settings[HIGHLIGHT_BY_DEFAULT] && highlightable && file.content.length < 50_000) {
+            // Auto highlight files that are less than 50k chars based on setting
+            setHighlight(true);
+        }
+    }, [settings, highlightable, file]);
+    useEffect(() => {
+        if (!yamlValidated && !yamlValidating && yaml && settings[VALIDATE_YAML_BY_DEFAULT]) {
+            // Auto yaml validate based on setting
+            validateYaml()
+        }
+    }, [settings, validateYaml, yaml, yamlValidated, yamlValidating]);
 
     const plainViewer = () => <PlainContentViewer
         content={content}
@@ -109,7 +116,7 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
                         }
                     </span>
                     {
-                        /\.ya?ml$/.test(file.name) && (
+                        yaml && (
                             <button onClick={async () => {
                                 if (yamlValidated) {
                                     setYamlValidationVisible(!yamlValidationVisible);
