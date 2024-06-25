@@ -214,7 +214,7 @@ function PlainContentViewer(
                     <div className={styles.lineNumbers}>
                         {
                             currentLineNumbers.map((line, i) => {
-                                const warningIndex = yamlWarnings.findIndex(x => x.mark.line === line);
+                                const warningIndex = yamlWarnings.findIndex(x => (x.mark.line + 1) === line);
                                 return (
                                     <div style={yamlValidationVisible && warningIndex !== -1 ? {
                                         display: "flex",
@@ -246,11 +246,11 @@ function PlainContentViewer(
                                 <div style={{position: "relative"}}>
                                     <div style={{position: "absolute"}}>
                                         <pre className={styles.validationCursor} style={{
-                                            top: ((shownWarning.mark.line - 1) * 2.2) + "ex",
-                                            left: (shownWarning.mark.column - 1) + "ch"
+                                            top: ((shownWarning.mark.line) * 2.2) + "ex",
+                                            left: (shownWarning.mark.column) + "ch"
                                         }}>^</pre>
                                         <div className={styles.validationBox} style={{
-                                            top: ((shownWarning.mark.line - 2) * 2.2) + "ex",
+                                            top: ((shownWarning.mark.line - 1) * 2.2) + "ex",
                                             width: Math.max(60, shownWarning.mark.column + 5) + "ch"
                                         }}>
                                             <span>{shownWarning.reason}</span>
