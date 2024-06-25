@@ -214,7 +214,7 @@ function PlainContentViewer(
                     <div className={styles.lineNumbers}>
                         {
                             currentLineNumbers.map((line, i) => {
-                                const warningIndex = yamlWarnings.findIndex(x => (x.mark.line + 1) === line);
+                                const warningIndex = yamlWarnings.findIndex(x => x?.mark?.line && (x.mark.line + 1) === line);
                                 return (
                                     <div style={yamlValidationVisible && warningIndex !== -1 ? {
                                         display: "flex",
