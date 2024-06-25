@@ -1,8 +1,11 @@
 "use client"
-import {useEffect, useState} from 'react';
+import {createContext, useEffect, useState} from 'react';
 import styles from './debug.module.css'
 import Logs from "./(components)/files/logs";
-import SettingsModal, {POLITICS, STORAGE_EXPANDED_BY_DEFAULT} from "./(components)/settings_modal";
+import SettingsModal, {
+    POLITICS,
+    STORAGE_EXPANDED_BY_DEFAULT
+} from "./(components)/settings_modal";
 import TableOfContents from "./(components)/files/table_of_contents";
 import {b64Decode, decrypt, getFromBin, getFromBytebin} from "./(util)/util";
 import Environment from "./(components)/files/environment";
@@ -12,6 +15,8 @@ import {politics_summary} from "./(util)/politics_util";
 import DebugFile from "./(components)/files/debug_file";
 
 const LOCAL_STORAGE_KEY = "debug_options";
+
+export const SettingsContext = createContext({});
 
 export default function DebugClient({ params, serverError, legacy }) {
     "use client"
@@ -310,7 +315,9 @@ export default function DebugClient({ params, serverError, legacy }) {
                 </div>
             </div>
             <TableOfContents headings={debugFiles.map(file => file.toc)} settings={settings} changeSettings={changeSettings}/>
-            {debugFiles.map(file => file.jsx)}
+            <SettingsContext.Provider value={settings}>
+                {debugFiles.map(file => file.jsx)}
+            </SettingsContext.Provider>
         </div>
         <SettingsModal open={settingsOpen} close={() => setSettingsOpen(false)} settings={settings} changeSettings={changeSettings}/>
     </>
