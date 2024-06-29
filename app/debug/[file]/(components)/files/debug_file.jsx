@@ -80,11 +80,11 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
     }, [file]);
 
     useEffect(() => {
-        if (settings[HIGHLIGHT_BY_DEFAULT] && highlightable && file.content.length < 50_000) {
+        if (!nonText && settings[HIGHLIGHT_BY_DEFAULT] && highlightable && file.content && file.content.length < 50_000) {
             // Auto highlight files that are less than 50k chars based on setting
             setHighlight(true);
         }
-    }, [settings, highlightable, file]);
+    }, [settings, highlightable, file, nonText]);
     useEffect(() => {
         if (!yamlValidated && !yamlValidating && yaml && settings[VALIDATE_YAML_BY_DEFAULT]) {
             // Auto yaml validate based on setting
