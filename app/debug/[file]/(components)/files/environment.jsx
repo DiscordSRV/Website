@@ -14,7 +14,7 @@ export default function Environment({ id, file, fileControl }) {
     return (
         <FileDisplay id={id} fileControl={fileControl} nonText={true} file={{name: "Environment"}} content={((
                 <div className={styles.environmentCardStack}>
-                    <DiscordSRVCard discordSRV={content.discordSRV}/>
+                    <DiscordSRVCard discordSRV={content.discordSRV} platformVersion={content.platformVersion}/>
                     <VersionCard version={content.version} gitRevision={content.gitRevision} gitBranch={content.gitBranch} buildTime={content.buildTime}/>
                     <StatusCard status={content.status} jdaStatus={content.jdaStatus}/>
                     <OnlineModeCard onlineMode={content.onlineMode} offlineModeUuid={content.offlineModeUuid}/>
@@ -30,7 +30,7 @@ export default function Environment({ id, file, fileControl }) {
     )
 }
 
-function DiscordSRVCard({ discordSRV }) {
+function DiscordSRVCard({ discordSRV, platformVersion }) {
     const known = {
         "com.discordsrv.bukkit.BukkitDiscordSRV": "Bukkit",
         "com.discordsrv.bungee.BungeeDiscordSRV": "Bungee",
@@ -38,11 +38,8 @@ function DiscordSRVCard({ discordSRV }) {
         "com.discordsrv.velocity.VelocityDiscordSRV": "Velocity"
     }
     let platform = known[discordSRV];
-    if (platform) {
-        return <EnvironmentCard title="Platform" content={platform} status={OK}/>
-    } else {
-        return <EnvironmentCard title="Platform" content={discordSRV + "\n(Unofficial)"} status={ERROR}/>
-    }
+    let title = platform ?? discordSRV + "\n(Unofficial)";
+    return <EnvironmentCard title="Platform" content={title} status={platform ? ERROR : OK}>{platformVersion}</EnvironmentCard>
 }
 
 function VersionCard({ version, gitRevision, gitBranch, buildTime }) {
