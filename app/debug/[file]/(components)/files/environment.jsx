@@ -39,7 +39,7 @@ function DiscordSRVCard({ discordSRV, platformVersion }) {
     }
     let platform = known[discordSRV];
     let title = platform ?? discordSRV + "\n(Unofficial)";
-    return <EnvironmentCard title="Platform" content={title} status={platform ? ERROR : OK}>{platformVersion}</EnvironmentCard>
+    return <EnvironmentCard title="Platform" content={title} status={platform ? OK : ERROR}>{platformVersion}</EnvironmentCard>
 }
 
 function VersionCard({ version, gitRevision, gitBranch, buildTime }) {
