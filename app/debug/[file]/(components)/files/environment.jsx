@@ -32,7 +32,7 @@ export default function Environment({ id, file, fileControl }) {
 
 function DiscordSRVCard({ discordSRV, platformVersion }) {
     const known = {
-        "com.discordsrv.bukkit.BukkitDiscordSRV": "Bukkit",
+        "com.discordsrv.bukkit.BukkitDiscordSRVImpl": "Bukkit",
         "com.discordsrv.bungee.BungeeDiscordSRV": "Bungee",
         "com.discordsrv.sponge.SpongeDiscordSRV": "Sponge",
         "com.discordsrv.velocity.VelocityDiscordSRV": "Velocity"
