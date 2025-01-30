@@ -64,7 +64,15 @@ export default function MultiFiles({ id, header, fileControl, files, mapFileToJS
                                 {
                                     mapFileToJSX
                                         ? mapFileToJSX(file, i)
-                                        : <FileDisplay file={file.file} content={file.content} fileControl={file.control} />
+                                        : <FileDisplay file={file.file} content={file.content} fileControl={file.control}
+                                                       setContent={content => {
+                                                           setControllableFiles(controllableFiles.map((file, index) => {
+                                                               if (index === i) {
+                                                                   file.content = content;
+                                                               }
+                                                               return file;
+                                                           }));
+                                                       }} />
                                 }
                             </div>
                         )
