@@ -1,4 +1,4 @@
-import styles from "../../debug.module.css";
+import styles from "../../debugclient.module.css";
 import Index from "../../../../(components)/modal";
 import {useEffect, useState} from "react";
 import {FileDisplay} from "./debug_file";

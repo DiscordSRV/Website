@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import styles from "../../debug.module.css";
+import styles from "../../debugclient.module.css";
 import {FileDisplay} from "./debug_file";
 
 export default function MultiFiles({ id, header, fileControl, files, mapFileToJSX, extraHeaderJSX }) {

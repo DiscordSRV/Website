@@ -1,5 +1,5 @@
 import { useCollapse } from "react-collapsed";
-import styles from "../../debug.module.css";
+import styles from "../../debugclient.module.css";
 import {lazy, Suspense, useCallback, useContext, useEffect, useState} from "react";
 import {b64Decode, decrypt, getFromBytebin} from "../../(util)/util";
 import {SettingsContext} from "../../client";

@@ -15,7 +15,8 @@
     "next": "^14.2.4",
     "react": "^18.3.1",
     "react-collapsed": "^4.1.2",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "unzipit": "^1.4.3"
   },
   "devDependencies": {
     "@types/node": "20.14.7",

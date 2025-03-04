@@ -1,0 +1,22 @@
+/* Zip */
+.zipAreaWrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.zipArea {
+    width: 80%;
+    height: 40vw;
+    background-color: black;
+    border-radius: 1rem;
+    margin-top: 5rem;
+
+    display: flex;
+    justify-content: center;
+}
+
+.zipArea label {
+    text-align: center;
+    margin-top: 5rem;
+    font-size: xx-large;
+}

@@ -1,6 +1,6 @@
 "use client"
 import {createContext, useEffect, useState} from 'react';
-import styles from './debug.module.css'
+import styles from './debugclient.module.css'
 import Logs from "./(components)/files/logs";
 import SettingsModal, {
     POLITICS,
@@ -18,13 +18,13 @@ const LOCAL_STORAGE_KEY = "debug_options";
 
 export const SettingsContext = createContext({});
 
-export default function DebugClient({ params, serverError, legacy }) {
+export default function DebugClient({ params, serverError, legacy, preDecryptedData }) {
     "use client"
     const { file } = params;
 
     const [ data, setData ] = useState(null);
 
-    const [ decryptedData, setDecryptedData ] = useState(null);
+    const [ decryptedData, setDecryptedData ] = useState(preDecryptedData);
     const [ error, setError ] = useState(serverError);
 
     const [ allExpanded, setAllExpanded ] = useState(true);
@@ -221,7 +221,7 @@ export default function DebugClient({ params, serverError, legacy }) {
     }, [decryptedData]);
 
     useEffect(() => {
-        if (!decryptedData) {
+        if (!decryptedData || !settings) {
             return;
         }
 

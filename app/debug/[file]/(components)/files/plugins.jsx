@@ -1,5 +1,5 @@
 import {FileDisplay} from "./debug_file";
-import styles from "../../debug.module.css";
+import styles from "../../debugclient.module.css";
 import Modal from "../../../../(components)/modal";
 import {useState} from "react";
 
