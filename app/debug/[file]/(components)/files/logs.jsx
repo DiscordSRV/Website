@@ -7,6 +7,15 @@ import MultiFiles from "./multi_files";
 const LOG_LINE_PATTERN = /\[(\w*)] (?:\[(\w*)])?/;
 const UNCATEGORIZED = "Uncategorized";
 
+const categoriesDisabledByDefault = [
+    "JDA",
+    "Hikari",
+    "DependencyDownload",
+    "MODULE_MANAGER",
+    "EVENT_BUS"
+];
+const levelOrder = ["INFO", "WARNING", "ERROR", "DEBUG", "VERBOSE"];
+
 function Logs({ id, logs, fileControl }) {
     const [ modalOpen, setModalOpen ] = useState(false);
     const [ availableCategories, setAvailableCategories ] = useState([]);
@@ -111,10 +120,13 @@ function Logs({ id, logs, fileControl }) {
             })
         });
 
+        categories.sort();
+        levels.sort((a, b) => (levelOrder.indexOf(a) ?? 100) - (levelOrder.indexOf(b) ?? 100));
         setAvailableCategories(categories);
         setAvailableLevels(levels);
+
         if (selectedCategories == null || usingAllCategories) {
-            setSelectedCategories([...categories]);
+            setSelectedCategories([...categories].filter(category => categoriesDisabledByDefault.indexOf(category) === -1));
         }
         if (selectedLevels == null || usingAllLevels) {
             setSelectedLevels([...levels]);
