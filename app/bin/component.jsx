@@ -13,11 +13,11 @@ export default function Page() {
     }
 
     return (
-        <div style={{display: "flex", justifyContent: "center", marginTop: "3rem", width: "100%"}}>
-            <div style={{display: "flex", flexDirection: "column"}}>
+        <div style={{display: "flex", justifyContent: "center", margin: "3rem"}}>
+            <div style={{display: "flex", flexDirection: "column", maxWidth: "40rem", width: "100%"}}>
                 <h2>Paste your Bin url below</h2>
                 <textarea
-                    style={{width: "40rem", backgroundColor: "transparent", borderRadius: "2px", color: "white"}}
+                    style={{width: "100%", backgroundColor: "transparent", borderRadius: "2px", color: "white", resize: "none"}}
                     placeholder="https://bin.scarsz.me/..."
                     onChange={event => checkUrl(event.target.value)}
                 />
