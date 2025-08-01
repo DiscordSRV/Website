@@ -9,20 +9,21 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@next/bundle-analyzer": "^14.2.4",
+    "@next/bundle-analyzer": "^15.4.5",
     "highlight.js": "^11.5.0",
     "js-yaml": "^4.1.0",
-    "next": "^14.2.4",
-    "react": "^18.3.1",
+    "next": "^15.4.5",
+    "react": "^19.1.1",
     "react-collapsed": "^4.1.2",
-    "react-dom": "^18.3.1",
+    "react-dom": "^19.1.1",
     "unzipit": "^1.4.3"
   },
   "devDependencies": {
-    "@types/node": "20.14.7",
-    "@types/react": "18.3.3",
+    "@types/node": "24.1.0",
+    "@types/react": "19.1.9",
     "autoprefixer": "^10.4.16",
-    "eslint": "8.11.0",
-    "eslint-config-next": "12.1.0"
+    "eslint": "9.32.0",
+    "eslint-config-next": "15.4.5",
+    "typescript": "5.9.2"
   }
 }
