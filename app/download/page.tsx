@@ -24,6 +24,10 @@ export default function Page() {
             .then(result => result.json())
             .then(json => setMetadata(json))
             .catch(error => setError(error));
+        fetch("https://download.discordsrv.com/v2/DiscordSRV/Ascension/testing/metadata")
+            .then(result => result.json())
+            .then(json => setMetadata(json))
+            .catch(error => setError(error));
     }, []);
 
     if (!metadata && !error) {
@@ -55,7 +59,7 @@ export default function Page() {
             <span>Join our <a href="https://discordsrv.com/discord" style={{textDecoration: "underline"}}>Discord server</a> and visit the <code>#ascension-testing</code> channel (you need the <code>Tester</code> role from <code>Channels & Roles</code>) for more information</span>
             {!show && <button onClick={() => setShow(true)} style={{maxWidth: "10rem", color: "black"}}>I understand</button>}
 
-            {show && Object.keys(metadata.artifactMetadata).map(key => {
+            {show && Object.keys(metadata.artifactMetadata).filter(key => key !== "velocity" && key !== "bungee").map(key => {
                 return (
                     <div key={key} style={{display: "flex", flexDirection: "column"}}>
                         <h3>{key}</h3>
