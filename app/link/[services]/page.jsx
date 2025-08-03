@@ -1,3 +1,4 @@
+"use client";
 import LinkPage from "../page";
 import {useParams, useSearchParams} from "next/navigation";
 
