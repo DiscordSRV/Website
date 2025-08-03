@@ -13,13 +13,14 @@ import Plugins from "./(components)/files/plugins";
 import MultiFiles from "./(components)/files/multi_files";
 import {politics_summary} from "./(util)/politics_util";
 import DebugFile from "./(components)/files/debug_file";
+import {useParams} from "next/navigation";
 
 const LOCAL_STORAGE_KEY = "debug_options";
 
 export const SettingsContext = createContext({});
 
-export default function DebugClient({ params, serverError, legacy, preDecryptedData }) {
-    "use client"
+export default function DebugClient({ serverError, legacy, preDecryptedData }) {
+    const params = useParams();
     const { file } = params;
 
     const [ data, setData ] = useState(null);
