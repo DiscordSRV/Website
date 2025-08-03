@@ -1,10 +1,13 @@
 "use client";
-import LinkPage from "../page";
 import {useParams, useSearchParams} from "next/navigation";
+import {LinkPage} from "../component";
 
 export default function LinkPageWithServices() {
     const params = useParams();
+    let { services } = params;
+
     const searchParams = useSearchParams();
-    let { services } = params ?? {};
-    return <LinkPage searchParams={searchParams} services={services}/>
+    let command = searchParams.has("command") && searchParams.get("command");
+
+    return <LinkPage command={command} services={services} />
 }
