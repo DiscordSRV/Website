@@ -16,6 +16,7 @@
     "react": "^19.1.1",
     "react-collapsed": "^4.1.2",
     "react-dom": "^19.1.1",
+    "redis": "^5.8.2",
     "unzipit": "^1.4.3"
   },
   "devDependencies": {

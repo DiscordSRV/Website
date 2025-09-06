@@ -1,4 +1,6 @@
-export async function GET(request, { params }) {
+import { NextRequest } from "next/server";
+
+export async function GET(request: NextRequest, { params }) {
     let response = await fetch(`https://bin.scarsz.me/v1/${params.file}.json`);
     if (response.status !== 200) {
         return new Response(response.body, {status: response.status});
