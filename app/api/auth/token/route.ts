@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ALLOWED_USER_IDS, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, createRedisClient } from "../../../(helpers)/api-helpers";
+import { createRedisClient } from "../../../(helpers)/api-helpers";
+import { ALLOWED_USER_IDS, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET } from "../(helper)/auth-helper";
 
 const redis = await createRedisClient();
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DISCORD_CLIENT_ID } from "../../(helpers)/api-helpers";
+import { DISCORD_CLIENT_ID } from "./(helper)/auth-helper";
 
 export async function GET(request: NextRequest) {
     const array = new Uint8Array(8);

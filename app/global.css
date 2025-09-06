@@ -16,3 +16,7 @@ a {
   box-sizing: border-box;
   color: #fff;
 }
+
+select, button, input {
+  color: black;
+}

@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkAuth, createRedisClient } from "../../../(helpers)/api-helpers";
+import { createRedisClient } from "../../../(helpers)/api-helpers";
+import { checkAuth } from "../../auth/(helper)/auth-helper";
+import { FAQ_ENTRY_PREFIX, getFaqEntry } from "../(helper)/faq-helper";
 
 const redis = await createRedisClient();
 
 export async function GET(request: NextRequest, { params }) {
-    const result = await redis.get(`faq:${params.id}`);
-    if (result != null && typeof result !== "string") {
-        return NextResponse.json({"error": "Unexpected kv content"}, {status: 500});
-    }
-    return NextResponse.json(JSON.parse(result as string | null | undefined));
+    return NextResponse.json(getFaqEntry(params.id, redis));
 }
 
 export async function POST(request: NextRequest, { params }) {
@@ -34,11 +32,11 @@ async function alter(request: NextRequest, id: string, operation: Operation) {
         return NextResponse.json({error: "unauthorized"}, {status: 401});
     }
 
-    if (!/a-zA-Z0-9_-/.test(id)) {
+    if (!/[a-zA-Z0-9_-]{1,50}/.test(id)) {
         return NextResponse.json({error: "bad id"}, {status: 400});
     }
 
-    const key = `faq:${id}`;
+    const key = `${FAQ_ENTRY_PREFIX}${id}`;
     const existing = await redis.get(key);
     if (operation != Operation.CREATE ? existing == null : existing != null) {
         return NextResponse.json({"error": operation  ? "Doesn't exist" : "Already exists"}, {status: 400})
