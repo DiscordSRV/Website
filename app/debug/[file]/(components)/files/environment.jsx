@@ -36,7 +36,8 @@ function DiscordSRVCard({ discordSRV, platformVersion }) {
         "com.discordsrv.bungee.BungeeDiscordSRV": "Bungee",
         "com.discordsrv.sponge.SpongeDiscordSRV": "Sponge",
         "com.discordsrv.velocity.VelocityDiscordSRV": "Velocity",
-        "com.discordsrv.fabric.FabricDiscordSRV": "Fabric"
+        "com.discordsrv.fabric.FabricDiscordSRV": "Fabric",
+        "com.discordsrv.neoforge.NeoForgeDiscordSRV": "NeoForge"
     }
     let platform = known[discordSRV];
     let title = platform ?? discordSRV + "\n(Unofficial)";
