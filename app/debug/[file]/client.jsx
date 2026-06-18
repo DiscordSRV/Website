@@ -254,10 +254,11 @@ export default function DebugClient({ serverError, legacy, preDecryptedData }) {
 
     useEffect(() => {
         // Changes the hash to itself after decryption so the browser jumps to the desired file
-        // It's not silly if it works.
+        // The browser has a proxy on this property changing to trigger moving to that part of the page
 
-        // noinspection SillyAssignmentJS
-        window.location.hash = window.location.hash;
+        const originalHash = window.location.hash;
+        window.location.hash = undefined;
+        window.location.hash = originalHash;
     }, [debugFiles]);
 
     if (error != null) {
