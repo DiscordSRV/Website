@@ -60,6 +60,12 @@
     margin: 0;
 }
 
+.multiFileButtons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.1rem;
+}
+
 .logFiltersWrapper {
     display: flex;
     gap: 2rem;
@@ -128,6 +134,8 @@
 
 /* Plugins file */
 .pluginsTable {
+    margin-top: 0.5rem;
+
     display: table;
 }
 .pluginsTable > * {
@@ -136,7 +144,7 @@
 .pluginsTable > * > * {
     display: table-cell;
     border: 1px solid #DDD;
-    padding: 0.5rem;
+    padding: 0.2rem;
     white-space: nowrap;
 }
 .pluginsTable button {
@@ -157,13 +165,18 @@
 .fileHeader {
     display: flex;
     justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
     border-bottom: #999 1px solid;
+
+    text-wrap: wrap;
 }
 
 .fileControlBar {
     align-self: flex-end;
 
     display: flex;
+    flex-wrap: wrap;
     gap: 0.1rem;
 }
 

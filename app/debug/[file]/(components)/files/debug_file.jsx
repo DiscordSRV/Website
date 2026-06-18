@@ -102,7 +102,7 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
     return (
         <div id={id} className={styles.file}>
             <div className={styles.fileHeader}>
-                <h4 className={styles.fileName}>{file.name}</h4>
+                <a href={id ? ("#" + id) : undefined}><h4 className={styles.fileName}>{file.name}</h4></a>
                 <div className={`${styles.fileControl} ${styles.fileControlBar}`}>
                     {/* YAML validation indicator & Button */}
                     <span style={{marginRight: "0.3rem"}}>

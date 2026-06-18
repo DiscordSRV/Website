@@ -46,15 +46,17 @@ export default function MultiFiles({ id, header, fileControl, files, mapFileToJS
     return (
         <>
             <div id={id} className={`${styles.fileControl} ${styles.multiFileControl}`}>
-                <h3>{header}</h3>
-                {
-                    files?.map((file, i) => {
-                        return <button key={i} onClick={() => setSelected(i)} style={{width: "6rem"}}>
-                            {file.label + (i === selected ? " (Current)" : "")}
-                        </button>
-                    })
-                }
-                { extraHeaderJSX }
+                <a href={"#" + id}><h3>{header}</h3></a>
+                <div className={styles.multiFileButtons}>
+                    {
+                        files?.map((file, i) => {
+                            return <button key={i} onClick={() => setSelected(i)} style={{minWidth: "2rem", fontWeight: i === selected ? "bold" : "normal"}}>
+                                {file.label}
+                            </button>
+                        })
+                    }
+                    { extraHeaderJSX }
+                </div>
             </div>
             <div>
                 {
