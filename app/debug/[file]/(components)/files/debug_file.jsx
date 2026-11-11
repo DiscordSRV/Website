@@ -1,7 +1,7 @@
 import { useCollapse } from "react-collapsed";
 import styles from "../../debugclient.module.css";
 import {lazy, Suspense, useCallback, useContext, useEffect, useState} from "react";
-import {b64Decode, decrypt, getFromBytebin} from "../../(util)/util";
+import {b64Decode, decrypt, getFromPastesDev} from "../../(util)/util";
 import {SettingsContext} from "../../client";
 import {HIGHLIGHT_BY_DEFAULT, VALIDATE_YAML_BY_DEFAULT} from "../settings_modal";
 
@@ -49,7 +49,7 @@ export function FileDisplay({ id, file, fileControl, lineNumbers, nonText, conte
             return;
         }
 
-        getFromBytebin(file.url).then(async(result) => {
+        getFromPastesDev(file.url).then(async(result) => {
             const decrypted = await decrypt(b64Decode(result), b64Decode(file.decryption_key));
             setContent(JSON.parse(decrypted).content);
             setLoading(false);
