@@ -68,7 +68,7 @@ export default function DebugClient({ serverError, legacy, preDecryptedData }) {
             if (file?.length > 16) {
                 data = await getFromBin(`/api/bincors/${file}`).files[0].content;
             } else {
-                data = await getFromPastesDev(`https://pastes.dev/${file}`);
+                data = await getFromPastesDev(`https://api.pastes.dev/${file}`);
             }
             setData(data);
         }
