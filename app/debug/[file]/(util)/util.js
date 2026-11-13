@@ -30,14 +30,14 @@ async function decrypt(encryptedData, decryptionKey) {
     return new TextDecoder().decode(decryptedBytes);
 }
 
-async function getFromBytebin(url) {
+async function getFromPastesDev(url) {
     const response = await fetch(url);
     if (response.status === 404 || response.headers.get('content-type') !== 'application/octet-stream') {
-        throw "Invalid bytebin url";
+        throw "Invalid pastes.dev url";
     }
     if (response.status !== 200) {
-        throw "Failed to get Bytebin: " + response.statusText + " (" + response.status + ")\n"
-            + (await response.text().catch(err => console.error("Failed to read bytebin body", err)))
+        throw "Failed to get Pastes.dev: " + response.statusText + " (" + response.status + ")\n"
+            + (await response.text().catch(err => console.error("Failed to read pastes.dev body", err)))
     }
     return await response.text();
 }
@@ -51,4 +51,4 @@ async function getFromBin(url) {
     return await response.json();
 }
 
-export {b64Decode, decrypt, getFromBytebin, getFromBin}
+export {b64Decode, decrypt, getFromPastesDev, getFromBin}

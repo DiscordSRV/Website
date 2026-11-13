@@ -7,7 +7,7 @@ import SettingsModal, {
     STORAGE_EXPANDED_BY_DEFAULT
 } from "./(components)/settings_modal";
 import TableOfContents from "./(components)/files/table_of_contents";
-import {b64Decode, decrypt, getFromBin, getFromBytebin} from "./(util)/util";
+import {b64Decode, decrypt, getFromBin, getFromPastesDev} from "./(util)/util";
 import Environment from "./(components)/files/environment";
 import Plugins from "./(components)/files/plugins";
 import MultiFiles from "./(components)/files/multi_files";
@@ -68,7 +68,7 @@ export default function DebugClient({ serverError, legacy, preDecryptedData }) {
             if (file?.length > 16) {
                 data = await getFromBin(`/api/bincors/${file}`).files[0].content;
             } else {
-                data = await getFromBytebin(`https://bytebin.lucko.me/${file}`);
+                data = await getFromPastesDev(`https://api.pastes.dev/${file}`);
             }
             setData(data);
         }
